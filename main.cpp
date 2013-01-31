@@ -87,7 +87,7 @@ print_log_file(
         logfile << "Rows: "<< rows << std::endl;
         logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
-        logfile << "Milliseconds: "<< time << std::endl;
+        logfile << "Milliseconds: "<< time/1000 << std::endl;
 	logfile.close();
     }
     else std::cout << "Unable to open file";
