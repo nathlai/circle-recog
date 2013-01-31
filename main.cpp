@@ -10,7 +10,7 @@ int edge_threshy = 200;
 int center_threshy = 80;
 int blur_threshy = 4;
 int const max_threshold = 500;
-Mat orig_src, src, src_gray;
+Mat orig_src, orig_gray, src, src_gray;
 
 Mat applySobel(Mat src_gray)
 {
@@ -41,6 +41,7 @@ void drawHough(int, void*)
 {
     vector<Vec3f> circles;
     src = orig_src.clone();
+    src_gray = orig_gray.clone();
     
     printf("EDGE: %d\nCENTER: %d\nBLUR: %d\n\n", edge_threshy, center_threshy, blur_threshy * 2 + 1);
     
@@ -111,7 +112,7 @@ int main(int argc, char** argv)
     createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
     
     start = clock();
-    cvtColor( orig_src, src_gray, CV_BGR2GRAY );
+    cvtColor( orig_src, orig_gray, CV_BGR2GRAY );
     drawHough(0, 0);
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
 
