@@ -71,7 +71,7 @@ void drawHough(int, void*)
 void
 print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
-               float center_threshold, float circles, float rows, float columns, float time)
+               float center_threshold, float circles, float rows, float columns, double time)
 {
     std::ofstream logfile ("/Users/Nath/Desktop/circle_log_file.txt");
     if (logfile.is_open())
@@ -96,22 +96,26 @@ print_log_file(
 int main(int argc, char** argv)
 {
     string window_name = "Hough Circle Transform Demo";
+    clock_t start;
+    double duration;
 
     /// Read the image
     orig_src = imread( argv[1], 1 );
     
     if( !orig_src.data )
     { return -1; }
-    
-    cvtColor( orig_src, src_gray, CV_BGR2GRAY );
 
     namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
     createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
     createTrackbar( "Hough Center:", window_name, &center_threshy, max_threshold, drawHough );
     createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
+    
+    start = clock();
+    cvtColor( orig_src, src_gray, CV_BGR2GRAY );
     drawHough(0, 0);
+    duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
 
-    print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, 100, orig_src.rows, orig_src.cols);
+    print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, 100, orig_src.rows, orig_src.cols, duration);
     waitKey(0);
     return 0;
 }
