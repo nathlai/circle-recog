@@ -71,7 +71,7 @@ void drawHough(int, void*)
 void
 print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
-               float center_threshold, float circles, float rows, float columns)
+               float center_threshold, float circles, float rows, float columns, float time)
 {
     std::ofstream logfile ("/Users/Nath/Desktop/circle_log_file.txt");
     if (logfile.is_open())
@@ -87,7 +87,8 @@ print_log_file(
         logfile << "Rows: "<< rows << std::endl;
         logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
-        logfile.close();
+        logfile << "Milliseconds: "<< time << std::endl;
+	logfile.close();
     }
     else std::cout << "Unable to open file";
 }
