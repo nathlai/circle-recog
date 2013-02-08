@@ -37,7 +37,7 @@ Using in XCODE
     
     Run the xcode program, and play with the slider bars in order to improve circle recognition accuracy.  When the window exits, a simple log file will be written.  This will be adjusted in future improvements.
     
-    
+    The program accepts two commandline parameters.  The first parameter is for the location of the image process, the second parameter that the program takes is the directory in which the log file and the radii files are written to.
     
 Future improvements
 --------------------
