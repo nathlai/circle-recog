@@ -25,7 +25,15 @@ Installing in XCODE
 Using in XCODE
 ---------------
 
-    In order to use this project in xcode, it is necessary to have opencv correctly linked to the project.  Once that is done, one needs to specify an image in order to detect the circles.  This is done by secting the product drop down menu, select scheme, and then chose edit.  From here we can select the command line values of the picture that we want to look through.  Absolute pathing works the best.  This should be the first parameter.
+    In order to use this project in xcode, it is necessary to have opencv
+    correctly linked to the project.  Once that is done, one needs to specify an
+    image in order to detect the circles.  This is done by secting the product
+    drop down menu, select scheme, and then chose edit.  From here we can select
+    the command line values of the picture that we want to look through.
+    Absolute pathing works the best.  This should be the first parameter. From
+    our experience, we had to ensure that the compiler is set to the GCC
+    compiler, versus the default Apple LLVM compiler. Otherwise, the Apple
+    compiler with throw errors.
     
     Run the xcode program, and play with the slider bars in order to improve circle recognition accuracy.  When the window exits, a simple log file will be written.  This will be adjusted in future improvements.
     
