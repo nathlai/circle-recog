@@ -12,6 +12,12 @@ int blur_threshy = 4;
 int const max_threshold = 500;
 Mat orig_src, orig_gray, src, src_gray;
 
+std::string logfile_output = "";
+
+void print_radii(vector<Vec3f> circles);
+
+vector<Vec3f> radii_vector;
+
 Mat applySobel(Mat src_gray)
 {
     /// Generate grad_x and grad_y
@@ -50,7 +56,7 @@ void drawHough(int, void*)
     //GaussianBlur( src_gray, src_gray, Size(9, 9), 0, 0 );
     
     /// Apply the Hough Transform to find the circles
-    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, edge_threshy, center_threshy, 0, 0 );
+    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, 0.1, edge_threshy, center_threshy, 0, 0 );
     
     /// Draw the circles detected
     for( size_t i = 0; i < circles.size(); i++ )
@@ -62,6 +68,7 @@ void drawHough(int, void*)
         // circle outline
         circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
     }
+    radii_vector = circles;
     
     imshow( "Hough Circle Transform Demo", src );
     //imshow( "Hough Circle Transform Demo", src_gray );
@@ -74,10 +81,10 @@ print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
                float center_threshold, float circles, float rows, float columns, double time)
 {
-    std::ofstream logfile ("/Users/Nath/Desktop/circle_log_file.txt");
+    std::string tempstr = logfile_output + "circle_log_file.txt";
+    std::ofstream logfile (tempstr.c_str());
     if (logfile.is_open())
     {
-        
         logfile << "Hough Circle Recognition\n\n";
         logfile << "Picture: "<< name << std::endl;
         logfile << "Sobel filter: "<< sobel << std::endl;
@@ -89,7 +96,23 @@ print_log_file(
         logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
         logfile << "Milliseconds: "<< time/1000 << std::endl;
-	logfile.close();
+        logfile.close();
+    }
+    else std::cout << "Unable to open file";
+}
+
+
+void
+print_radii(vector<Vec3f> circles)
+{
+    std::string tempstr = logfile_output + "radii_file.txt";
+    std::ofstream radiifile (tempstr.c_str());
+    if (radiifile.is_open())
+    {
+        for (int i = 0; i < circles.size(); i++) {
+            radiifile << "X: " << circles[i][0] << " Y: " << circles[i][1] << " Radius: " << circles[i][2] << std::endl;
+        }
+        radiifile.close();
     }
     else std::cout << "Unable to open file";
 }
@@ -102,6 +125,7 @@ int main(int argc, char** argv)
 
     /// Read the image
     orig_src = imread( argv[1], 1 );
+    logfile_output = argv[2];
     
     if( !orig_src.data )
     { return -1; }
@@ -117,6 +141,8 @@ int main(int argc, char** argv)
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
 
     print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, 100, orig_src.rows, orig_src.cols, duration);
+    
+    print_radii(radii_vector);
     waitKey(0);
     return 0;
 }
