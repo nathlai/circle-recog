@@ -1,5 +1,6 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "cv.h"
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -11,6 +12,8 @@ int center_threshy = 80;
 int blur_threshy = 4;
 int const max_threshold = 500;
 Mat orig_src, orig_gray, src, src_gray;
+
+float image_height = 500.;
 
 std::string logfile_output = "";
 
@@ -76,6 +79,17 @@ void drawHough(int, void*)
     //imwrite("/Users/Nath/Desktop/circle2.jpg", src);
 }
 
+Mat
+set_image_resolution(Mat value){
+    Mat small_image, resized_image;
+    
+    float percent = image_height/value.rows;
+    
+    resize(value, resized_image, Size(),percent, percent, INTER_LINEAR);
+   // resize(small_image, resized_image, Size(), 2, 2, INTER_LINEAR);
+    return resized_image;
+}
+
 void
 print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
@@ -129,6 +143,9 @@ int main(int argc, char** argv)
     
     if( !orig_src.data )
     { return -1; }
+    
+    
+    orig_src = set_image_resolution(orig_src);
 
     namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
     createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
