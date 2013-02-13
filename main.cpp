@@ -13,7 +13,14 @@ int blur_threshy = 4;
 int const max_threshold = 500;
 Mat orig_src, orig_gray, src, src_gray;
 
-float image_height = 500.;
+int contrast_threshy = 20;
+int brightness_threshy = 0;
+
+float image_height = 600.;
+
+int min_circle_radius = 5;
+int max_circle_radius = 100;
+
 
 std::string logfile_output = "";
 
@@ -48,6 +55,26 @@ Mat applySobel(Mat src_gray)
 
 void drawHough(int, void*)
 {
+    
+    Mat new_image = Mat::zeros( orig_src.size(), orig_src.type() );
+    double c_thresh = contrast_threshy/20.;
+    
+    for( int y = 0; y < orig_src.rows; y++ )
+    {
+        for( int x = 0; x < orig_src.cols; x++ )
+        {
+            for( int c = 0; c < 3; c++ )
+            {
+                new_image.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(c_thresh*( orig_src.at<Vec3b>(y,x)[c] ) + brightness_threshy );
+            }
+        }
+    }
+    imshow("after contrast and brightness", new_image);
+    
+    
+    
+    cvtColor( new_image, orig_gray, CV_BGR2GRAY );
+    
     vector<Vec3f> circles;
     src = orig_src.clone();
     src_gray = orig_gray.clone();
@@ -57,9 +84,19 @@ void drawHough(int, void*)
     GaussianBlur( src_gray, src_gray, Size(blur_threshy * 2 + 1, blur_threshy * 2 + 1), 0, 0 );
     //src_gray = applySobel(src_gray);
     //GaussianBlur( src_gray, src_gray, Size(9, 9), 0, 0 );
+    imshow("after blur", src_gray);
+    
+
+    
+    
+    
+    
+    
+    
+    
     
     /// Apply the Hough Transform to find the circles
-    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, 0.1, edge_threshy, center_threshy, 0, 0 );
+    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, 0.1, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
     
     /// Draw the circles detected
     for( size_t i = 0; i < circles.size(); i++ )
@@ -86,7 +123,6 @@ set_image_resolution(Mat value){
     float percent = image_height/value.rows;
     
     resize(value, resized_image, Size(),percent, percent, INTER_LINEAR);
-   // resize(small_image, resized_image, Size(), 2, 2, INTER_LINEAR);
     return resized_image;
 }
 
@@ -151,15 +187,20 @@ int main(int argc, char** argv)
     createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
     createTrackbar( "Hough Center:", window_name, &center_threshy, max_threshold, drawHough );
     createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
+    createTrackbar( "Contrast:", window_name, &contrast_threshy, 60, drawHough );
+    
+    
     
     start = clock();
-    cvtColor( orig_src, orig_gray, CV_BGR2GRAY );
+    
     drawHough(0, 0);
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
 
-    print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, 100, orig_src.rows, orig_src.cols, duration);
+    
+    waitKey(0);
+    
+    print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration);
     
     print_radii(radii_vector);
-    waitKey(0);
     return 0;
 }
