@@ -132,10 +132,11 @@ print_log_file(
                float center_threshold, float circles, float rows, float columns, double time)
 {
     std::string tempstr = logfile_output + "circle_log_file.txt";
-    std::ofstream logfile (tempstr.c_str());
+    std::ofstream logfile;
+    logfile.open(tempstr.c_str(), std::ios_base::app);
     if (logfile.is_open())
     {
-        logfile << "Hough Circle Recognition\n\n";
+        logfile << "----------------------------------------------------------------------\n";
         logfile << "Picture: "<< name << std::endl;
         logfile << "Sobel filter: "<< sobel << std::endl;
         logfile << "Blur amount: "<< blur << std::endl;
@@ -146,6 +147,7 @@ print_log_file(
         logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
         logfile << "Milliseconds: "<< time/1000 << std::endl;
+        logfile << std::endl;
         logfile.close();
     }
     else std::cout << "Unable to open file";
