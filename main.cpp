@@ -22,6 +22,9 @@ int brightness_threshy = 0;
 
 float image_height = 600.;
 
+float original_row_amount;
+float original_column_amount;
+
 int min_circle_radius = 0;
 int max_circle_radius = 0;
 
@@ -120,7 +123,7 @@ set_image_resolution(Mat value){
 void
 print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
-               float center_threshold, float circles, float rows, float columns, double time)
+               float center_threshold, float circles, float rows, float columns, double time, int run_number)
 {
     std::string tempstr = logfile_output + "circle_log_file.txt";
     std::ofstream logfile;
@@ -128,14 +131,15 @@ print_log_file(
     if (logfile.is_open())
     {
         logfile << "----------------------------------------------------------------------\n";
-        logfile << "Picture: "<< name << std::endl;
-        logfile << "Sobel filter: "<< sobel << std::endl;
+        logfile << run_number << std::endl;
+        //logfile << "Picture: "<< name << std::endl;
+        //logfile << "Sobel filter: "<< sobel << std::endl;
         logfile << "Blur amount: "<< blur << std::endl;
         logfile << "Minimum Circle distance: "<< circle_centers << std::endl;
         logfile << "Canny line detection threshold: "<< canny_threshold << std::endl;
         logfile << "Center threshold: "<< center_threshold << std::endl;
-        logfile << "Rows: "<< rows << std::endl;
-        logfile << "Columns: "<< columns << std::endl;
+        //logfile << "Rows: "<< rows << std::endl;
+        //logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
         logfile << "Milliseconds: "<< time/1000 << std::endl;
         logfile << std::endl;
@@ -144,18 +148,40 @@ print_log_file(
     else std::cout << "Unable to open file";
 }
 
+void print_log_header(string name, float rows, float columns, float old_rows, float old_columns)
+{
+    std::string tempstr = logfile_output + "circle_log_file.txt";
+    std::ofstream logfile;
+    logfile.open(tempstr.c_str(), std::ios_base::app);
+    if (logfile.is_open())
+    {
+        logfile << "----------------------------------------------------------------------\n";
+        logfile << "----------------------------------------------------------------------\n";
+        logfile << "----------------------------------------------------------------------\n";
+        logfile << "Picture: "<< name << std::endl;
+        logfile << "Original_Rows: "<< old_rows << std::endl;
+        logfile << "Original_Columns: "<< old_columns << std::endl;
+        
+        logfile << "Rows: "<< rows << std::endl;
+        logfile << "Columns: "<< columns << std::endl;
+        logfile << std::endl;
+        logfile.close();
+    }
+}
+
 
 void
-print_radii(vector<Vec3f> circles)
+print_radii_values(vector<Vec3f> circles)
 {
-    std::string tempstr = logfile_output + "radii_file.txt";
-    std::ofstream radiifile (tempstr.c_str());
-    if (radiifile.is_open())
-    {
+    std::string tempstr = logfile_output + "circle_log_file.txt";
+    std::ofstream logfile;
+    logfile.open(tempstr.c_str(), std::ios_base::app);
+    if (logfile.is_open()){
+        logfile << "X,Y,Z" << std::endl;
         for (int i = 0; i < circles.size(); i++) {
-            radiifile << "X: " << circles[i][0] << " Y: " << circles[i][1] << " Radius: " << circles[i][2] << std::endl;
+            logfile << circles[i][0] << "," << circles[i][1] << "," << circles[i][2] << std::endl;
         }
-        radiifile.close();
+        logfile.close();
     }
     else std::cout << "Unable to open file";
 }
@@ -176,6 +202,7 @@ int main(int argc, char** argv)
     string window_name = "Hough Circle Transform Demo";
     clock_t start;
     double duration;
+    int run_number = 0;
 
     /// Read the image
     orig_src = imread( argv[1], 1 );
@@ -183,9 +210,15 @@ int main(int argc, char** argv)
     if( !orig_src.data )
     { return -1; }
     
+    original_row_amount = orig_src.rows;
+    original_column_amount = orig_src.cols;
+    
+    
     // Resize image, for consistency
     orig_src = set_image_resolution(orig_src);
     src = orig_src.clone();
+    
+    print_log_header(argv[1], orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
 
     // Create window and trackbars
     namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
@@ -202,8 +235,8 @@ int main(int argc, char** argv)
     waitKey(0);
     
     // Print logfiles
-    print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration);
+    print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number);
 
-    print_radii(radii_vector);
+    print_radii_values(radii_vector);
     return 0;
 }
