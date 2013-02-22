@@ -11,6 +11,10 @@ int edge_threshy = 200;
 int center_threshy = 80;
 int blur_threshy = 4;
 int const max_threshold = 500;
+
+// orig_src - original source picture
+// orig_gray - original source picture, grayscale
+// src, src_gray - clones of originals, used to do one pass of Hough an display
 Mat orig_src, orig_gray, src, src_gray;
 
 int contrast_threshy = 20;
@@ -21,6 +25,7 @@ float image_height = 600.;
 int min_circle_radius = 0;
 int max_circle_radius = 0;
 
+Scalar color = Scalar(0, 0, 0);
 
 std::string logfile_output = "";
 
@@ -56,7 +61,7 @@ void drawHough(int, void*)
     Mat new_image = Mat::zeros( orig_src.size(), orig_src.type() );
     double c_thresh = contrast_threshy/20.;
     vector<Vec3f> circles;
-    src = orig_src.clone();
+    //src = orig_src.clone();
  
     // Apply contrast
     for( int y = 0; y < orig_src.rows; y++ )
@@ -69,7 +74,7 @@ void drawHough(int, void*)
             }
         }
     }
-    imshow("after contrast and brightness", new_image);
+    //imshow("after contrast and brightness", new_image);
     
     // Convert to grayscale
     cvtColor( new_image, orig_gray, CV_BGR2GRAY );
@@ -79,7 +84,7 @@ void drawHough(int, void*)
     
     // Blur input picture
     GaussianBlur( src_gray, src_gray, Size(blur_threshy * 2 + 1, blur_threshy * 2 + 1), 0, 0 );
-    imshow("after blur", src_gray);
+    //imshow("after blur", src_gray);
     
     /// Apply the Hough Transform to find the circles
     HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src.rows/8, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
@@ -92,11 +97,11 @@ void drawHough(int, void*)
         // circle center
         //circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
         // circle outline
-        circle( src, center, radius, Scalar(0,0,255), 1, 8, 0 );
+        circle( src, center, radius, color, 1, 8, 0 );
     }
     radii_vector = circles;
     
-    imshow( "Hough Circle Transform Demo", src );
+    //imshow( "Hough Circle Transform Demo", src );
     //imshow( "Hough Circle Transform Demo", src_gray );
     //waitKey(0);
     //imwrite("/Users/Nath/Desktop/circle2.jpg", src);
@@ -155,6 +160,17 @@ print_radii(vector<Vec3f> circles)
     else std::cout << "Unable to open file";
 }
 
+void passes(int low, int high)
+{
+    for(int i = low; i <= high; i += 5)
+    {
+        color = Scalar(rand() % 256, rand() % 256, rand() % 256);
+        drawHough(0, 0);
+        edge_threshy = i;
+    }
+    imshow( "Hough Circle Transform Demo", src );
+}
+
 int main(int argc, char** argv)
 {
     string window_name = "Hough Circle Transform Demo";
@@ -169,6 +185,7 @@ int main(int argc, char** argv)
     
     // Resize image, for consistency
     orig_src = set_image_resolution(orig_src);
+    src = orig_src.clone();
 
     // Create window and trackbars
     namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
@@ -179,9 +196,9 @@ int main(int argc, char** argv)
     
     // Run circle detection, track timing also
     start = clock();
-    drawHough(0, 0);
+    passes(100, 200);
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-
+    
     waitKey(0);
     
     // Print logfiles
