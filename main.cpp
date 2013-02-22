@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include <ctime>
 
 using namespace cv;
 
@@ -199,6 +200,8 @@ print_log_file(
 
 void print_log_header(string name, float rows, float columns, float old_rows, float old_columns)
 {
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
     std::string tempstr = logfile_output + "circle_log_file.txt";
     std::ofstream logfile;
     logfile.open(tempstr.c_str(), std::ios_base::app);
@@ -206,7 +209,7 @@ void print_log_header(string name, float rows, float columns, float old_rows, fl
     {
         logfile << "----------------------------------------------------------------------\n";
         logfile << "----------------------------------------------------------------------\n";
-        logfile << "----------------------------------------------------------------------\n";
+        logfile << ltm->tm_year + 1900<<":"<< ltm->tm_mon + 1 <<":"<< ltm->tm_mday <<":"<< ltm->tm_hour <<":"<< ltm->tm_min <<":"<< ltm->tm_sec <<std::endl;
         logfile << "Picture: "<< name << std::endl;
         logfile << "Original_Rows: "<< old_rows << std::endl;
         logfile << "Original_Columns: "<< old_columns << std::endl;
