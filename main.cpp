@@ -156,7 +156,6 @@ void drawHough(int, void*)
     //imshow( "Hough Circle Transform Demo", src );
     //imshow( "Hough Circle Transform Demo", src_gray );
     //waitKey(0);
-    //imwrite("/Users/Nath/Desktop/circle2.jpg", src);
 }
 
 Mat
@@ -265,8 +264,6 @@ int main(int argc, char** argv)
 {
     string window_name = "Hough Circle Transform Demo";
 
-    
-
     /// Read the image
     orig_src = imread( argv[1], 1 );
     logfile_output = argv[2];
@@ -295,10 +292,8 @@ int main(int argc, char** argv)
     
     passes(50, 200);
     
-    
     waitKey(0);
-    
-    // Print logfiles
+    imwrite(logfile_output + "circle_recog.jpg", src);
     
     return 0;
 }
