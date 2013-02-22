@@ -35,6 +35,54 @@ std::string logfile_output = "";
 
 vector<Vec3f> radii_vector;
 
+Scalar BlueGreenRed( double f )
+{
+    f = min(max(1. - f, 0.), 1.);
+	f = f * (2./3.);	// convert 0.-1. into 0.-(2/3)
+    
+    double r = 1.;
+    double g = 0.0;
+    double b = 1.  -  6. * ( f - (5./6.) );
+    
+    if( f <= (5./6.) )
+    {
+        r = 6. * ( f - (4./6.) );
+        g = 0.;
+        b = 1.;
+    }
+    
+    if( f <= (4./6.) )
+    {
+        r = 0.;
+        g = 1.  -  6. * ( f - (3./6.) );
+        b = 1.;
+    }
+    
+    if( f <= (3./6.) )
+    {
+        r = 0.;
+        g = 1.;
+        b = 6. * ( f - (2./6.) );
+    }
+    
+    if( f <= (2./6.) )
+    {
+        r = 1.  -  6. * ( f - (1./6.) );
+        g = 1.;
+        b = 0.;
+    }
+    
+    if( f <= (1./6.) )
+    {
+        r = 1.;
+        g = 6. * f;
+    }
+    
+    //std::cout << Scalar(b, g, r) << std::endl;
+    
+    return Scalar(b * 255, g * 255, r * 255);
+}
+
 Mat applySobel(Mat src_gray)
 {
     /// Generate grad_x and grad_y
@@ -101,7 +149,7 @@ void drawHough(int, void*)
         // circle center
         //circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
         // circle outline
-        circle( src, center, radius, color, 1, 8, 0 );
+        circle( src, center, radius, color, 3, 8, 0 );
     }
     radii_vector = circles;
     
@@ -190,16 +238,20 @@ print_radii_values(vector<Vec3f> circles)
 void passes(int low, int high)
 {
     int run_number = 0;
+    double input_color = 0.;
+    double inc = 1. / ((high - low) / 5.);
     for(int i = low; i <= high; i += 5)
     {
         clock_t start;
         double duration;
-        start = clock();
-        color = Scalar(rand() % 256, rand() % 256, rand() % 256);
-        drawHough(0, 0);
-        edge_threshy = i;
+        color = BlueGreenRed(input_color);
         
+        start = clock();
+        drawHough(0, 0);
         duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
+        
+        edge_threshy = i;
+        input_color += inc;
         print_log_file(file_name, blur_threshy * 2 + 1, false, 100, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number);
         run_number++;
         
@@ -241,7 +293,7 @@ int main(int argc, char** argv)
     
     // Run circle detection, track timing also
     
-    passes(100, 200);
+    passes(50, 200);
     
     
     waitKey(0);
