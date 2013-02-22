@@ -173,7 +173,7 @@ set_image_resolution(Mat value){
 void
 print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
-               float center_threshold, float circles, float rows, float columns, double time, int run_number)
+               float center_threshold, float circles, float rows, float columns, double time, int run_number, Scalar temp_col)
 {
     std::string tempstr = logfile_output + "circle_log_file.txt";
     std::ofstream logfile;
@@ -188,6 +188,7 @@ print_log_file(
         logfile << "Minimum Circle distance: "<< circle_centers << std::endl;
         logfile << "Canny line detection threshold: "<< canny_threshold << std::endl;
         logfile << "Center threshold: "<< center_threshold << std::endl;
+        logfile << "Color: " << temp_col<< std::endl;
         //logfile << "Rows: "<< rows << std::endl;
         //logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
@@ -255,7 +256,7 @@ void passes(int low, int high)
         
         edge_threshy = i;
         input_color += inc;
-        print_log_file(file_name, blur_threshy * 2 + 1, false, 100, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number);
+        print_log_file(file_name, blur_threshy * 2 + 1, false, 100, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
         run_number++;
         
         print_radii_values(radii_vector);
