@@ -21,6 +21,7 @@ int contrast_threshy = 20;
 int brightness_threshy = 0;
 
 float image_height = 600.;
+string file_name;
 
 float original_row_amount;
 float original_column_amount;
@@ -177,7 +178,7 @@ print_radii_values(vector<Vec3f> circles)
     std::ofstream logfile;
     logfile.open(tempstr.c_str(), std::ios_base::app);
     if (logfile.is_open()){
-        logfile << "X,Y,Z" << std::endl;
+        logfile << "X,Y,R" << std::endl;
         for (int i = 0; i < circles.size(); i++) {
             logfile << circles[i][0] << "," << circles[i][1] << "," << circles[i][2] << std::endl;
         }
@@ -188,11 +189,22 @@ print_radii_values(vector<Vec3f> circles)
 
 void passes(int low, int high)
 {
+    int run_number = 0;
     for(int i = low; i <= high; i += 5)
     {
+        clock_t start;
+        double duration;
+        start = clock();
         color = Scalar(rand() % 256, rand() % 256, rand() % 256);
         drawHough(0, 0);
         edge_threshy = i;
+        
+        duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
+        print_log_file(file_name, blur_threshy * 2 + 1, false, 100, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number);
+        run_number++;
+        
+        print_radii_values(radii_vector);
+        
     }
     imshow( "Hough Circle Transform Demo", src );
 }
@@ -200,9 +212,8 @@ void passes(int low, int high)
 int main(int argc, char** argv)
 {
     string window_name = "Hough Circle Transform Demo";
-    clock_t start;
-    double duration;
-    int run_number = 0;
+
+    
 
     /// Read the image
     orig_src = imread( argv[1], 1 );
@@ -213,6 +224,7 @@ int main(int argc, char** argv)
     original_row_amount = orig_src.rows;
     original_column_amount = orig_src.cols;
     
+    file_name = argv[1];
     
     // Resize image, for consistency
     orig_src = set_image_resolution(orig_src);
@@ -228,15 +240,13 @@ int main(int argc, char** argv)
     createTrackbar( "Contrast:", window_name, &contrast_threshy, 60, drawHough );
     
     // Run circle detection, track timing also
-    start = clock();
+    
     passes(100, 200);
-    duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
+    
     
     waitKey(0);
     
     // Print logfiles
-    print_log_file(argv[1], blur_threshy * 2 + 1, false, 100, 100, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number);
-
-    print_radii_values(radii_vector);
+    
     return 0;
 }
