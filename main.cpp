@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include <ctime>
 
 using namespace cv;
 
@@ -171,7 +172,7 @@ set_image_resolution(Mat value){
 void
 print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
-               float center_threshold, float circles, float rows, float columns, double time, int run_number)
+               float center_threshold, float circles, float rows, float columns, double time, int run_number, Scalar temp_col)
 {
     std::string tempstr = logfile_output + "circle_log_file.txt";
     std::ofstream logfile;
@@ -186,6 +187,7 @@ print_log_file(
         logfile << "Minimum Circle distance: "<< circle_centers << std::endl;
         logfile << "Canny line detection threshold: "<< canny_threshold << std::endl;
         logfile << "Center threshold: "<< center_threshold << std::endl;
+        logfile << "Color: " << temp_col<< std::endl;
         //logfile << "Rows: "<< rows << std::endl;
         //logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
@@ -198,6 +200,8 @@ print_log_file(
 
 void print_log_header(string name, float rows, float columns, float old_rows, float old_columns)
 {
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
     std::string tempstr = logfile_output + "circle_log_file.txt";
     std::ofstream logfile;
     logfile.open(tempstr.c_str(), std::ios_base::app);
@@ -205,7 +209,7 @@ void print_log_header(string name, float rows, float columns, float old_rows, fl
     {
         logfile << "----------------------------------------------------------------------\n";
         logfile << "----------------------------------------------------------------------\n";
-        logfile << "----------------------------------------------------------------------\n";
+        logfile << ltm->tm_year + 1900<<":"<< ltm->tm_mon + 1 <<":"<< ltm->tm_mday <<":"<< ltm->tm_hour <<":"<< ltm->tm_min <<":"<< ltm->tm_sec <<std::endl;
         logfile << "Picture: "<< name << std::endl;
         logfile << "Original_Rows: "<< old_rows << std::endl;
         logfile << "Original_Columns: "<< old_columns << std::endl;
@@ -251,7 +255,7 @@ void passes(int low, int high)
         
         edge_threshy = i;
         input_color += inc;
-        print_log_file(file_name, blur_threshy * 2 + 1, false, 100, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number);
+        print_log_file(file_name, blur_threshy * 2 + 1, false, 100, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
         run_number++;
         
         print_radii_values(radii_vector);
