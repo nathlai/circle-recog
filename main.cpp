@@ -12,6 +12,7 @@ int edge_threshy = 200;
 int center_threshy = 80;
 int blur_threshy = 4;
 int const max_threshold = 500;
+float cntr_distance;
 
 // orig_src - original source picture
 // orig_gray - original source picture, grayscale
@@ -36,6 +37,13 @@ std::string logfile_output = "";
 
 vector<Vec3f> radii_vector;
 
+vector <vector<Vec3f> > circle_list;
+int list_counter = 0;
+
+
+/*
+ This function helps to colorize the values of our circles to overlay on top of the image
+ */
 Scalar BlueGreenRed( double f )
 {
     f = min(max(1. - f, 0.), 1.);
@@ -117,6 +125,7 @@ void drawHough(int, void*)
     //src = orig_src.clone();
  
     // Apply contrast
+    /*
     for( int y = 0; y < orig_src.rows; y++ )
     {
         for( int x = 0; x < orig_src.cols; x++ )
@@ -126,13 +135,19 @@ void drawHough(int, void*)
                 new_image.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(c_thresh*( orig_src.at<Vec3b>(y,x)[c] ) + brightness_threshy );
             }
         }
-    }
+    }*/
     //imshow("after contrast and brightness", new_image);
     
     // Convert to grayscale
-    cvtColor( new_image, orig_gray, CV_BGR2GRAY );
+    cvtColor( orig_src, orig_gray, CV_BGR2GRAY );
     src_gray = orig_gray.clone();
     
+    //Mat dst_this;
+    //equalizeHist(src_gray, dst_this);
+    
+    //imshow("source", src_gray);
+    //imshow("histog", dst_this);
+    //src_gray = dst_this;
     //printf("EDGE: %d\nCENTER: %d\nBLUR: %d\n\n", edge_threshy, center_threshy, blur_threshy * 2 + 1);
     
     // Blur input picture
@@ -140,7 +155,8 @@ void drawHough(int, void*)
     //imshow("after blur", src_gray);
     
     /// Apply the Hough Transform to find the circles
-    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src.rows/8, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
+    cntr_distance = src.rows/8;
+    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, cntr_distance, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
     
     /// Draw the circles detected
     for( size_t i = 0; i < circles.size(); i++ )
@@ -154,11 +170,17 @@ void drawHough(int, void*)
     }
     radii_vector = circles;
     
+    circle_list.push_back( circles );
+    
     //imshow( "Hough Circle Transform Demo", src );
     //imshow( "Hough Circle Transform Demo", src_gray );
     //waitKey(0);
 }
 
+
+/*
+ This function takes in the current mat and then resizes it and returns the new resized mat
+ */
 Mat
 set_image_resolution(Mat value){
     Mat small_image, resized_image;
@@ -169,7 +191,10 @@ set_image_resolution(Mat value){
     return resized_image;
 }
 
-void
+/*
+ This function prints out the values for each pass.
+ */
+ void
 print_log_file(
                string name, float blur, bool sobel, float circle_centers, float canny_threshold,
                float center_threshold, float circles, float rows, float columns, double time, int run_number, Scalar temp_col)
@@ -184,8 +209,8 @@ print_log_file(
         //logfile << "Picture: "<< name << std::endl;
         //logfile << "Sobel filter: "<< sobel << std::endl;
         logfile << "Blur amount: "<< blur << std::endl;
-        logfile << "Minimum Circle distance: "<< circle_centers << std::endl;
-        logfile << "Canny line detection threshold: "<< canny_threshold << std::endl;
+        logfile << "Circle Center distance: "<< circle_centers << std::endl;
+        logfile << "Canny edge threshold: "<< canny_threshold << std::endl;
         logfile << "Center threshold: "<< center_threshold << std::endl;
         logfile << "Color: " << temp_col<< std::endl;
         //logfile << "Rows: "<< rows << std::endl;
@@ -198,6 +223,9 @@ print_log_file(
     else std::cout << "Unable to open file";
 }
 
+/*
+ This function runs once at the beginning to print out the default values for the image, rows, cols, name
+ */
 void print_log_header(string name, float rows, float columns, float old_rows, float old_columns)
 {
     time_t now = time(0);
@@ -221,7 +249,9 @@ void print_log_header(string name, float rows, float columns, float old_rows, fl
     }
 }
 
-
+/*
+ This function just outputs the circles.
+ */
 void
 print_radii_values(vector<Vec3f> circles)
 {
@@ -255,13 +285,26 @@ void passes(int low, int high)
         
         edge_threshy = i;
         input_color += inc;
-        print_log_file(file_name, blur_threshy * 2 + 1, false, 100, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
+        print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
         run_number++;
         
         print_radii_values(radii_vector);
         
     }
     imshow( "Hough Circle Transform Demo", src );
+}
+
+/*
+ Writes the circle list to the console
+ */
+void write_circle_list()
+{
+    for (int i = 0; i < circle_list.size(); i++) {
+        vector<Vec3f> temp = circle_list[i];
+        for (int j = 0; j < temp.size(); j++) {
+            std::cout << temp[j] << std::endl;
+        }
+    }
 }
 
 int main(int argc, char** argv)
@@ -299,5 +342,6 @@ int main(int argc, char** argv)
     waitKey(0);
     imwrite(logfile_output + "circle_recog.jpg", src);
     
+    write_circle_list();
     return 0;
 }
