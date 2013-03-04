@@ -268,28 +268,35 @@ print_radii_values(vector<Vec3f> circles)
     else std::cout << "Unable to open file";
 }
 
-void passes(int low, int high)
+void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int highCenter)
 {
     int run_number = 0;
     double input_color = 0.;
-    double inc = 1. / ((high - low) / 5.);
+    double inc = 1. / (ceil((high - low + 1) / 5) * (highBlur - lowBlur + 1) * ceil((highCenter -lowCenter + 1) / 5));
     for(int i = low; i <= high; i += 5)
     {
-        clock_t start;
-        double duration;
-        color = BlueGreenRed(input_color);
-        
-        start = clock();
-        drawHough(0, 0);
-        duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-        
         edge_threshy = i;
-        input_color += inc;
-        print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
-        run_number++;
-        
-        print_radii_values(radii_vector);
-        
+        for(int j = lowBlur; j <= highBlur; j++)
+        {
+            blur_threshy = j;
+            for(int k = lowCenter; k <= highCenter; k += 5)
+            {
+                center_threshy = k;
+                clock_t start;
+                double duration;
+                color = BlueGreenRed(input_color);
+                
+                start = clock();
+                drawHough(0, 0);
+                duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
+                
+                input_color += inc;
+                print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
+                run_number++;
+                
+                print_radii_values(radii_vector);
+            }
+        }
     }
     imshow( "Hough Circle Transform Demo", src );
 }
@@ -337,7 +344,7 @@ int main(int argc, char** argv)
     
     // Run circle detection, track timing also
     
-    passes(50, 200);
+    passes(200, 200, 4, 4, 80, 80);
     
     waitKey(0);
     imwrite(logfile_output + "circle_recog.jpg", src);
