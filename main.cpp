@@ -13,6 +13,7 @@ int center_threshy = 80;
 int blur_threshy = 4;
 int const max_threshold = 500;
 float cntr_distance;
+bool debugmode = false;
 
 // orig_src - original source picture
 // orig_gray - original source picture, grayscale
@@ -155,8 +156,10 @@ void drawHough(int, void*)
     //imshow("after blur", src_gray);
     
     /// Apply the Hough Transform to find the circles
-    cntr_distance = src.rows/8;
+    cntr_distance = src.rows/8.;
     HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, cntr_distance, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
+    
+    Mat src_copy= src.clone();;
     
     /// Draw the circles detected
     for( size_t i = 0; i < circles.size(); i++ )
@@ -166,16 +169,26 @@ void drawHough(int, void*)
         // circle center
         //circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
         // circle outline
-        circle( src, center, radius, color, 3, 8, 0 );
+        if (debugmode) {
+            circle( src_copy, center, radius, Scalar(0,255, 0), 3, 8, 0 );
+        } else {
+            circle( src, center, radius, color, 3, 8, 0 );
+        }
+        
     }
     radii_vector = circles;
     
     circle_list.push_back( circles );
     
-    //imshow( "Hough Circle Transform Demo", src );
+    if (debugmode) {
+        imshow( "Hough Circle Transform Demo", src_copy );
+    }
+    
     //imshow( "Hough Circle Transform Demo", src_gray );
     //waitKey(0);
 }
+
+
 
 
 /*
@@ -272,7 +285,7 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
 {
     int run_number = 0;
     double input_color = 0.;
-    double inc = 1. / (ceil((high - low + 1) / 5) * (highBlur - lowBlur + 1) * ceil((highCenter -lowCenter + 1) / 5));
+    double inc = 1. / ((ceil((high - low + 1.) / 5.) * (highBlur - lowBlur + 1.) * ceil((highCenter - lowCenter + 1.) / 5.)));
     for(int i = low; i <= high; i += 5)
     {
         edge_threshy = i;
@@ -333,22 +346,32 @@ int main(int argc, char** argv)
     orig_src = set_image_resolution(orig_src);
     src = orig_src.clone();
     
-    print_log_header(argv[1], orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+    
+    if (atoi(argv[3]) != 1) {
+        debugmode = true;
+    }
+    if(debugmode){
 
     // Create window and trackbars
     namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
     createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
     createTrackbar( "Hough Center:", window_name, &center_threshy, max_threshold, drawHough );
     createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
-    createTrackbar( "Contrast:", window_name, &contrast_threshy, 60, drawHough );
+        drawHough(0, 0);
+        waitKey(0);
+        std::cout << edge_threshy << " " << blur_threshy << " " << center_threshy << std::endl;
     
+    } else {
     // Run circle detection, track timing also
+    print_log_header(argv[1], orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
     
-    passes(200, 200, 4, 4, 80, 80);
+    passes(100, 300, 7, 20, 80, 80);
     
     waitKey(0);
     imwrite(logfile_output + "circle_recog.jpg", src);
     
-    write_circle_list();
+        write_circle_list();
+    }
+        
     return 0;
 }
