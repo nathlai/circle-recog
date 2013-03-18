@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <ctime>
+#include <map>
 
 using namespace cv;
 
@@ -12,8 +13,17 @@ int edge_threshy = 200;
 int center_threshy = 80;
 int blur_threshy = 4;
 int const max_threshold = 500;
-float cntr_distance;
+float image_height = 600.;
+float cntr_distance = image_height/8;
 bool debugmode = false;
+
+
+int pixel_tolerance = 30;
+int circle_occurence = 5;
+std::map<string, Vec4f> aggregated_map;
+std::map<string, Vec4f>::iterator map_iterator;
+
+
 
 // orig_src - original source picture
 // orig_gray - original source picture, grayscale
@@ -23,7 +33,7 @@ Mat orig_src, orig_gray, src, src_gray;
 int contrast_threshy = 20;
 int brightness_threshy = 0;
 
-float image_height = 600.;
+
 string file_name;
 
 float original_row_amount;
@@ -118,6 +128,51 @@ Mat applySobel(Mat src_gray)
     return grad;
 }
 
+string convertInt(int number)
+{
+    std::stringstream ss;
+    ss << number;
+    return ss.str();
+}
+
+string hash_function(Vec3f circle_vector)
+{
+    int xhash = circle_vector[0] / pixel_tolerance;
+    int yhash = circle_vector[1] / pixel_tolerance;
+    int rhash = circle_vector[2] / pixel_tolerance;
+    
+    return convertInt(xhash)+"_"+convertInt(yhash)+"_"+convertInt(rhash);
+}
+
+
+void hash_insert(Vec3f circle_vector)
+{
+    Vec4f temp;
+    string hash = hash_function(circle_vector);
+    map_iterator = aggregated_map.find(hash);
+    if (map_iterator != aggregated_map.end()) {
+        //it is already added
+        temp = aggregated_map.at(hash);
+        temp[0] = (temp[0] + circle_vector[0])/2.;
+        temp[1] = (temp[1] + circle_vector[1])/2.;
+        temp[2] = (temp[2] + circle_vector[2])/2.;
+        temp[3]++;
+        aggregated_map.at(hash) = temp;
+        
+    } else {
+        //it has not been added
+        temp[0] = circle_vector[0];
+        temp[1] = circle_vector[1];
+        temp[2] = circle_vector[2];
+        temp[3] = 1;
+        
+        aggregated_map.insert(std::pair<string, Vec4f>(hash, temp));
+    }
+    
+}
+
+
+
 void drawHough(int, void*)
 {
     Mat new_image = Mat::zeros( orig_src.size(), orig_src.type() );
@@ -156,7 +211,7 @@ void drawHough(int, void*)
     //imshow("after blur", src_gray);
     
     /// Apply the Hough Transform to find the circles
-    cntr_distance = src.rows/8.;
+    
     HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, cntr_distance, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
     
     Mat src_copy= src.clone();;
@@ -170,9 +225,12 @@ void drawHough(int, void*)
         //circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
         // circle outline
         if (debugmode) {
-            circle( src_copy, center, radius, Scalar(0,255, 0), 3, 8, 0 );
+            circle( src_copy, center, radius, Scalar(0,255, 0), 2, 8, 0 );
         } else {
-            circle( src, center, radius, color, 3, 8, 0 );
+            
+            hash_insert(circles[i]);
+            
+            circle( src, center, radius, color, 2, 8, 0 );
         }
         
     }
@@ -285,7 +343,24 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
 {
     int run_number = 0;
     double input_color = 0.;
-    double inc = 1. / ((ceil((high - low + 1.) / 5.) * (highBlur - lowBlur + 1.) * ceil((highCenter - lowCenter + 1.) / 5.)));
+    double inc = 1. / ((
+                        ceil((high - low + 1.) / 5.) *
+                        (highBlur - lowBlur + 1.) *
+                        ceil((highCenter - lowCenter + 1.) / 5.) /*
+                        2.  this is for the multi pass for radius distance*/
+                        ));
+    /*
+     //multipass for radius distance
+     for(int h = 0; h < 2; h++)
+    {
+        if (h==0) {
+            min_circle_radius = 0;
+            max_circle_radius = 0;
+        } else {
+            min_circle_radius = 0;
+            max_circle_radius = 0;
+        }
+    */
     for(int i = low; i <= high; i += 5)
     {
         edge_threshy = i;
@@ -311,7 +386,8 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
             }
         }
     }
-    imshow( "Hough Circle Transform Demo", src );
+    //}
+    imshow( "Passes Without Aggregation", src );
 }
 
 /*
@@ -325,6 +401,28 @@ void write_circle_list()
             std::cout << temp[j] << std::endl;
         }
     }
+}
+
+void write_aggregate_list()
+{
+    for (map_iterator = aggregated_map.begin(); map_iterator != aggregated_map.end() ; map_iterator++) {
+        std::cout<< map_iterator->second << '\n';
+    }
+}
+
+void draw_aggregate_list()
+{
+    Mat agg_src = orig_src.clone();
+    for (map_iterator = aggregated_map.begin(); map_iterator != aggregated_map.end() ; map_iterator++) {
+        
+        Vec4f temp = map_iterator->second;
+        if (temp[3] >= circle_occurence) {
+            Point center(cvRound(temp[0]), cvRound(temp[1]));
+            int radius = cvRound(temp[2]);
+            circle( agg_src, center, radius, Scalar(0,255, 0), 2, 8, 0 );
+        }
+    }
+    imshow("aggregated list", agg_src);
 }
 
 int main(int argc, char** argv)
@@ -363,14 +461,17 @@ int main(int argc, char** argv)
     
     } else {
     // Run circle detection, track timing also
-    print_log_header(argv[1], orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
-    
-    passes(100, 300, 7, 20, 80, 80);
-    
-    waitKey(0);
-    imwrite(logfile_output + "circle_recog.jpg", src);
+        print_log_header(argv[1], orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+
+        passes(100, 300, 3, 20, 80, 80);
+        draw_aggregate_list();
+        
+        waitKey(0);
+        imwrite(logfile_output + "circle_recog.jpg", src);
     
         write_circle_list();
+        std::cout << "--------------------------"<<std::endl;
+        write_aggregate_list();
     }
         
     return 0;

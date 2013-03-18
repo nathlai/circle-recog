@@ -54,5 +54,8 @@ Future improvements
     Write used values to a log file in order to keep track of results.  Let users determine where the logfile is written to.
     
     
-    
+Parameters that worked
+-----------------------
+100, 300, 7, 20, 80, 80 : bicycle,controller
+100, 300, 3, 20, 80, 80 : clock  
     
