@@ -423,6 +423,7 @@ void draw_aggregate_list()
         }
     }
     imshow("aggregated list", agg_src);
+    imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
 
 int main(int argc, char** argv)
