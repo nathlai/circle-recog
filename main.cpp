@@ -240,6 +240,7 @@ void drawHough(int, void*)
     
     if (debugmode) {
         imshow( "Hough Circle Transform Demo", src_copy );
+        std::cout << edge_threshy << " " << blur_threshy << " " << center_threshy << std::endl;
     }
     
     //imshow( "Hough Circle Transform Demo", src_gray );
