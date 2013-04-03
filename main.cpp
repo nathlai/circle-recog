@@ -1,3 +1,8 @@
+/*
+ Nathan Lai
+ Matthew Okazaki
+*/
+
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "cv.h"
@@ -6,6 +11,7 @@
 #include <stdio.h>
 #include <ctime>
 #include <map>
+#include <getopt.h>
 
 using namespace cv;
 
@@ -178,32 +184,11 @@ void drawHough(int, void*)
     Mat new_image = Mat::zeros( orig_src.size(), orig_src.type() );
     double c_thresh = contrast_threshy/20.;
     vector<Vec3f> circles;
-    //src = orig_src.clone();
- 
-    // Apply contrast
-    /*
-    for( int y = 0; y < orig_src.rows; y++ )
-    {
-        for( int x = 0; x < orig_src.cols; x++ )
-        {
-            for( int c = 0; c < 3; c++ )
-            {
-                new_image.at<Vec3b>(y,x)[c] = saturate_cast<uchar>(c_thresh*( orig_src.at<Vec3b>(y,x)[c] ) + brightness_threshy );
-            }
-        }
-    }*/
-    //imshow("after contrast and brightness", new_image);
     
     // Convert to grayscale
     cvtColor( orig_src, orig_gray, CV_BGR2GRAY );
     src_gray = orig_gray.clone();
-    
-    //Mat dst_this;
-    //equalizeHist(src_gray, dst_this);
-    
-    //imshow("source", src_gray);
-    //imshow("histog", dst_this);
-    //src_gray = dst_this;
+
     //printf("EDGE: %d\nCENTER: %d\nBLUR: %d\n\n", edge_threshy, center_threshy, blur_threshy * 2 + 1);
     
     // Blur input picture
@@ -211,10 +196,9 @@ void drawHough(int, void*)
     //imshow("after blur", src_gray);
     
     /// Apply the Hough Transform to find the circles
-    
     HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, cntr_distance, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
-    
-    Mat src_copy= src.clone();;
+
+    Mat src_copy = src.clone();
     
     /// Draw the circles detected
     for( size_t i = 0; i < circles.size(); i++ )
@@ -241,9 +225,6 @@ void drawHough(int, void*)
     if (debugmode) {
         imshow( "Hough Circle Transform Demo", src_copy );
     }
-    
-    //imshow( "Hough Circle Transform Demo", src_gray );
-    //waitKey(0);
 }
 
 
@@ -428,43 +409,90 @@ void draw_aggregate_list()
 
 int main(int argc, char** argv)
 {
+    int blur_low = 3;
+    int blur_high = 20;
+    int cent_low = 80;
+    int cent_high = 80;
+    int edge_low = 100;
+    int edge_high = 300;
+    
+    int c;
+    char *token;
+    
+    while ((c = getopt (argc, argv, "di:o:b:e:c:")) != -1)
+        switch (c)
+    {
+        case 'd':
+            debugmode = true;
+            break;
+        case 'i':
+            orig_src = imread( optarg, 1 );
+            file_name = optarg;
+            break;
+        case 'o':
+            logfile_output = optarg;
+            break;
+        case 'b':
+            token = strtok(optarg, "-");
+            blur_low = atoi(token);
+            token = strtok(NULL, "-");
+            blur_high = atoi(token);
+            break;
+        case 'e':
+            token = strtok(optarg, "-");
+            edge_low = atoi(token);
+            token = strtok(NULL, "-");
+            edge_high = atoi(token);
+            break;
+        case 'c':
+            token = strtok(optarg, "-");
+            cent_low = atoi(token);
+            token = strtok(NULL, "-");
+            cent_high = atoi(token);
+            break;
+        case '?':
+            if (isprint (optopt))
+                fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+            else
+                fprintf (stderr,
+                         "Unknown option character `\\x%x'.\n",
+                         optopt);
+            return 1;
+        default:
+            abort();
+    }
+    
+    
+    
     string window_name = "Hough Circle Transform Demo";
 
-    /// Read the image
-    orig_src = imread( argv[1], 1 );
-    logfile_output = argv[2];
+    // Check the image
     if( !orig_src.data )
-    { return -1; }
+        { return -1; }
     
     original_row_amount = orig_src.rows;
     original_column_amount = orig_src.cols;
     
-    file_name = argv[1];
-    
     // Resize image, for consistency
     orig_src = set_image_resolution(orig_src);
     src = orig_src.clone();
-    
-    
-    if (atoi(argv[3]) != 1) {
-        debugmode = true;
-    }
-    if(debugmode){
 
-    // Create window and trackbars
-    namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
-    createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
-    createTrackbar( "Hough Center:", window_name, &center_threshy, max_threshold, drawHough );
-    createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
+    if(debugmode){
+        printf("GETOPT ARGS\nBLUR:%d to %d\nEDGE:%d to %d\nCENT:%d to %d\n", blur_low, blur_high, edge_low, edge_high, cent_low, cent_high);
+        // Create window and trackbars
+        namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
+        createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
+        createTrackbar( "Hough Center:", window_name, &center_threshy, max_threshold, drawHough );
+        createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
         drawHough(0, 0);
         waitKey(0);
         std::cout << edge_threshy << " " << blur_threshy << " " << center_threshy << std::endl;
-    
-    } else {
-    // Run circle detection, track timing also
-        print_log_header(argv[1], orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+    }
+    else {
+        // Run circle detection, track timing also
+        print_log_header(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
 
-        passes(100, 300, 3, 20, 80, 80);
+        passes(edge_low, edge_high, blur_low, blur_high, cent_low, cent_high);
         draw_aggregate_list();
         
         waitKey(0);
