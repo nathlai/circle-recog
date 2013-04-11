@@ -22,13 +22,13 @@ int const max_threshold = 500;
 float image_height = 600.;
 float cntr_distance = image_height/8;
 bool debugmode = false;
-<<<<<<< HEAD
+
 int debug_passes_counter = 0;
-=======
+
 bool debugmode_passes = false;
 int total_circles = 0;
 int total_aggregated_circles = 0;
->>>>>>> 9ad640422af0d801fd3910a4bf109eb587e88419
+
 
 
 int pixel_tolerance = 30;
@@ -377,26 +377,21 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
                     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
                     
                     input_color += inc;
-                    print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
+                    if(debugmode_passes)
+                    {
+                        print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
+                        print_radii_values(radii_vector);
+                    }
                     run_number++;
-                    
-                    print_radii_values(radii_vector);
+
                 }
-                
-<<<<<<< HEAD
-=======
-                input_color += inc;
-                if(debugmode_passes)
-                {
-                    print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
-                    print_radii_values(radii_vector);
-                }
-                run_number++;
->>>>>>> 9ad640422af0d801fd3910a4bf109eb587e88419
+
             }
         }
     }
     //}
+    
+    total_aggregated_circles = aggregated_map.size();
     imshow( "Passes Without Aggregation", src );
 }
 
@@ -456,7 +451,7 @@ int main(int argc, char** argv)
     int c;
     char *token;
     
-    while ((c = getopt (argc, argv, "dsi:o:b:e:c:")) != -1)
+    while ((c = getopt (argc, argv, "d:s:i:o:b:e:c:")) != -1)
         switch (c)
     {
         case 's':
@@ -538,18 +533,18 @@ int main(int argc, char** argv)
         waitKey(0);
         imwrite(logfile_output + "circle_recog.jpg", src);
     
-<<<<<<< HEAD
+
         //write_circle_list();
         //std::cout << "--------------------------"<<std::endl;
         //write_aggregate_list();
-=======
+
         write_circle_list();
         std::cout << "--------------------------"<<std::endl;
         write_aggregate_list();
         if(!debugmode_passes)
             print_aggregate_logfile(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
             // print new log file
->>>>>>> 9ad640422af0d801fd3910a4bf109eb587e88419
+
     }
     
     std::cout << debug_passes_counter;
