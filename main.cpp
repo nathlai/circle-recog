@@ -22,7 +22,13 @@ int const max_threshold = 500;
 float image_height = 600.;
 float cntr_distance = image_height/8;
 bool debugmode = false;
+<<<<<<< HEAD
 int debug_passes_counter = 0;
+=======
+bool debugmode_passes = false;
+int total_circles = 0;
+int total_aggregated_circles = 0;
+>>>>>>> 9ad640422af0d801fd3910a4bf109eb587e88419
 
 
 int pixel_tolerance = 30;
@@ -213,7 +219,7 @@ void drawHough(int, void*)
         if (debugmode) {
             circle( src_copy, center, radius, Scalar(0,255, 0), 2, 8, 0 );
         } else {
-            
+            total_circles++;
             hash_insert(circles[i]);
             
             //this displays the cumulative circles onto the screen
@@ -282,6 +288,11 @@ print_log_file(
 /*
  This function runs once at the beginning to print out the default values for the image, rows, cols, name
  */
+
+void print_aggregate_logfile(string name, float rows, float columns, float old_rows, float old_columns)
+{
+}
+
 void print_log_header(string name, float rows, float columns, float old_rows, float old_columns)
 {
     time_t now = time(0);
@@ -372,6 +383,16 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
                     print_radii_values(radii_vector);
                 }
                 
+<<<<<<< HEAD
+=======
+                input_color += inc;
+                if(debugmode_passes)
+                {
+                    print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
+                    print_radii_values(radii_vector);
+                }
+                run_number++;
+>>>>>>> 9ad640422af0d801fd3910a4bf109eb587e88419
             }
         }
     }
@@ -416,6 +437,7 @@ void draw_aggregate_list()
             Point center(cvRound(temp[0]), cvRound(temp[1]));
             int radius = cvRound(temp[2]);
             circle( agg_src, center, radius, Scalar(0,255, 0), 2, 8, 0 );
+            total_aggregated_circles++;
         }
     }
     imshow("aggregated list", agg_src);
@@ -434,9 +456,11 @@ int main(int argc, char** argv)
     int c;
     char *token;
     
-    while ((c = getopt (argc, argv, "di:o:b:e:c:")) != -1)
+    while ((c = getopt (argc, argv, "dsi:o:b:e:c:")) != -1)
         switch (c)
     {
+        case 's':
+            debugmode_passes = true;
         case 'd':
             debugmode = true;
             break;
@@ -505,7 +529,8 @@ int main(int argc, char** argv)
     }
     else {
         // Run circle detection, track timing also
-        print_log_header(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+        if(debugmode_passes)
+            print_log_header(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
 
         passes(edge_low, edge_high, blur_low, blur_high, cent_low, cent_high);
         draw_aggregate_list();
@@ -513,9 +538,18 @@ int main(int argc, char** argv)
         waitKey(0);
         imwrite(logfile_output + "circle_recog.jpg", src);
     
+<<<<<<< HEAD
         //write_circle_list();
         //std::cout << "--------------------------"<<std::endl;
         //write_aggregate_list();
+=======
+        write_circle_list();
+        std::cout << "--------------------------"<<std::endl;
+        write_aggregate_list();
+        if(!debugmode_passes)
+            print_aggregate_logfile(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+            // print new log file
+>>>>>>> 9ad640422af0d801fd3910a4bf109eb587e88419
     }
     
     std::cout << debug_passes_counter;
