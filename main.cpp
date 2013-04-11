@@ -22,6 +22,7 @@ int const max_threshold = 500;
 float image_height = 600.;
 float cntr_distance = image_height/8;
 bool debugmode = false;
+int debug_passes_counter = 0;
 
 
 int pixel_tolerance = 30;
@@ -108,6 +109,7 @@ Scalar BlueGreenRed( double f )
     
     return Scalar(b * 255, g * 255, r * 255);
 }
+
 
 Mat applySobel(Mat src_gray)
 {
@@ -214,6 +216,7 @@ void drawHough(int, void*)
             
             hash_insert(circles[i]);
             
+            //this displays the cumulative circles onto the screen
             circle( src, center, radius, color, 2, 8, 0 );
         }
         
@@ -351,20 +354,24 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
             blur_threshy = j;
             for(int k = lowCenter; k <= highCenter; k += 5)
             {
-                center_threshy = k;
-                clock_t start;
-                double duration;
-                color = BlueGreenRed(input_color);
+                if ( edge_threshy < (0.75* blur_threshy * blur_threshy - 34.*blur_threshy + 450) ){
+                    debug_passes_counter++;
+                    center_threshy = k;
+                    clock_t start;
+                    double duration;
+                    color = BlueGreenRed(input_color);
+                    
+                    start = clock();
+                    drawHough(0, 0);
+                    duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
+                    
+                    input_color += inc;
+                    print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
+                    run_number++;
+                    
+                    print_radii_values(radii_vector);
+                }
                 
-                start = clock();
-                drawHough(0, 0);
-                duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-                
-                input_color += inc;
-                print_log_file(file_name, blur_threshy * 2 + 1, false, cntr_distance, edge_threshy, center_threshy, radii_vector.size(), orig_src.rows, orig_src.cols, duration, run_number, color);
-                run_number++;
-                
-                print_radii_values(radii_vector);
             }
         }
     }
@@ -385,6 +392,10 @@ void write_circle_list()
     }
 }
 
+/*
+ This writes the aggregated list to the console
+ */
+
 void write_aggregate_list()
 {
     for (map_iterator = aggregated_map.begin(); map_iterator != aggregated_map.end() ; map_iterator++) {
@@ -392,6 +403,9 @@ void write_aggregate_list()
     }
 }
 
+/*
+ This draws the aggregated list to an image and then dispays it.
+ */
 void draw_aggregate_list()
 {
     Mat agg_src = orig_src.clone();
@@ -499,10 +513,11 @@ int main(int argc, char** argv)
         waitKey(0);
         imwrite(logfile_output + "circle_recog.jpg", src);
     
-        write_circle_list();
-        std::cout << "--------------------------"<<std::endl;
-        write_aggregate_list();
+        //write_circle_list();
+        //std::cout << "--------------------------"<<std::endl;
+        //write_aggregate_list();
     }
-        
+    
+    std::cout << debug_passes_counter;
     return 0;
 }
