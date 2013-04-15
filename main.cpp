@@ -32,6 +32,7 @@ int total_aggregated_circles = 0;
 
 
 int pixel_tolerance = 30;
+int radius_tolerance = 30;
 int circle_occurence = 5;
 std::map<string, Vec4f> aggregated_map;
 std::map<string, Vec4f>::iterator map_iterator;
@@ -153,7 +154,7 @@ string hash_function(Vec3f circle_vector)
 {
     int xhash = circle_vector[0] / pixel_tolerance;
     int yhash = circle_vector[1] / pixel_tolerance;
-    int rhash = circle_vector[2] / pixel_tolerance;
+    int rhash = circle_vector[2] / radius_tolerance;
     
     return convertInt(xhash)+"_"+convertInt(yhash)+"_"+convertInt(rhash);
 }
@@ -451,7 +452,7 @@ int main(int argc, char** argv)
     int c;
     char *token;
     
-    while ((c = getopt (argc, argv, "d:s:i:o:b:e:c:")) != -1)
+    while ((c = getopt (argc, argv, "dsi:o:b:e:c:r:p:")) != -1)
         switch (c)
     {
         case 's':
@@ -483,6 +484,14 @@ int main(int argc, char** argv)
             cent_low = atoi(token);
             token = strtok(NULL, "-");
             cent_high = atoi(token);
+            break;
+        case 'r':
+            token = strtok(optarg, "-");
+            radius_tolerance = atoi(token);
+            break;
+        case 'p':
+            token = strtok(optarg, "-");
+            pixel_tolerance = atoi(token);
             break;
         case '?':
             if (isprint (optopt))
@@ -547,6 +556,7 @@ int main(int argc, char** argv)
 
     }
     
-    std::cout << debug_passes_counter;
+    std::cout << debug_passes_counter << std::endl;
+    std::cout << pixel_tolerance << " " << radius_tolerance;
     return 0;
 }
