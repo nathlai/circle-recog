@@ -29,7 +29,12 @@ bool debugmode_passes = false;
 int total_circles = 0;
 int total_aggregated_circles = 0;
 
-
+int blur_low = 3;
+int blur_high = 20;
+int cent_low = 80;
+int cent_high = 80;
+int edge_low = 100;
+int edge_high = 300;
 
 int pixel_tolerance = 30;
 int radius_tolerance = 30;
@@ -292,6 +297,36 @@ print_log_file(
 
 void print_aggregate_logfile(string name, float rows, float columns, float old_rows, float old_columns)
 {
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    std::string tempstr = logfile_output + "circle_log_file.txt";
+    std::ofstream logfile;
+    logfile.open(tempstr.c_str(), std::ios_base::app);
+    if (logfile.is_open())
+    {
+        logfile << "----------------------------------------------------------------------\n";
+        logfile << "----------------------------------------------------------------------\n";
+        logfile << ltm->tm_year + 1900<<":"<< ltm->tm_mon + 1 <<":"<< ltm->tm_mday <<":"<< ltm->tm_hour <<":"<< ltm->tm_min <<":"<< ltm->tm_sec <<std::endl;
+        logfile << "Picture: "<< name << std::endl;
+        logfile << "Original_Rows: "<< old_rows << std::endl;
+        logfile << "Original_Columns: "<< old_columns << std::endl;
+        
+        logfile << "Rows: "<< rows << std::endl;
+        logfile << "Columns: "<< columns << std::endl;
+        logfile << "Total_Circles: "<< total_circles << std::endl;
+        logfile << "Total_Aggregated_Circles: "<< total_aggregated_circles << std::endl;
+        logfile << "Total_Passes: "<< debug_passes_counter << std::endl;
+        logfile << "Blur Range: "<< blur_low << "-" << blur_high << std::endl;
+        logfile << "Edge Range: "<< edge_low << "-" << edge_high << std::endl;
+        logfile << "Center Range: "<< cent_low << "-" << cent_high << std::endl;
+        logfile << "----------------------------------------------------------------------\n";
+        logfile << 'X' << '\t' << 'Y' << '\t' << 'R' << '\t' << "# of Circles" << std::endl;
+        for (map_iterator = aggregated_map.begin(); map_iterator != aggregated_map.end() ; map_iterator++) {
+            logfile << map_iterator->second[0] << '\t' << map_iterator->second[1] << '\t' <<
+                map_iterator->second[2] << '\t' << map_iterator->second[3] << '\t' << '\n';
+        }
+        logfile.close();
+    }
 }
 
 void print_log_header(string name, float rows, float columns, float old_rows, float old_columns)
@@ -442,13 +477,6 @@ void draw_aggregate_list()
 
 int main(int argc, char** argv)
 {
-    int blur_low = 3;
-    int blur_high = 20;
-    int cent_low = 80;
-    int cent_high = 80;
-    int edge_low = 100;
-    int edge_high = 300;
-    
     int c;
     char *token;
     
