@@ -39,8 +39,13 @@ int edge_high = 300;
 int pixel_tolerance = 30;
 int radius_tolerance = 30;
 int circle_occurence = 5;
+
 std::map<string, Vec4f> aggregated_map;
 std::map<string, Vec4f>::iterator map_iterator;
+
+
+
+
 
 
 
@@ -191,6 +196,85 @@ void hash_insert(Vec3f circle_vector)
     
 }
 
+/*
+ use 0 or 1 for x y and r for default shift the shift of 0 is equal to 2 therefore only values within 0 to 2 are necessary
+ 1 is half a grid length
+ it determines whether or not to shift the hashing. 0 doesn't shift, 1 shifts
+ other values may result in other off-centered mappings 
+ */
+string hash_function_modular(Vec3f circle_vector, float x, float y, float r)
+{
+    int xhash = (circle_vector[0] + x * (pixel_tolerance *.5))/ pixel_tolerance;
+    int yhash = (circle_vector[1] + y * (pixel_tolerance *.5))/ pixel_tolerance;
+    int rhash = (circle_vector[2] + r * (radius_tolerance * .5))/ radius_tolerance;
+    
+    return convertInt(xhash)+"_"+convertInt(yhash)+"_"+convertInt(rhash);
+}
+
+
+/*
+ this is the modular insert for our hash maps.
+ circle_vector is the vec3f that we want to store. 
+ map is the map that we want to put it into.
+ iterator is the iterator that we will use in order to find the value in the map
+ hash_number is the int which determines which hash function to use
+ */
+std::map<string, Vec4f> hash_insert_modular(Vec3f circle_vector, std::map<string, Vec4f> map, std::map<string, Vec4f>::iterator iterator, int hash_number)
+{
+    Vec4f temp;
+    string hash = hash_function(circle_vector);
+    switch (hash_number) {
+        case 1:
+            hash = hash_function_modular(circle_vector, 0, 0, 0);
+            break;
+        case 2:
+            hash = hash_function_modular(circle_vector, 1, 1, 0);
+            break;
+        case 3:
+            hash = hash_function_modular(circle_vector, 1, 0, 0);
+            break;
+        case 4:
+            hash = hash_function_modular(circle_vector, 0, 1, 0);
+            break;
+        case 5:
+            hash = hash_function_modular(circle_vector, 0, 0, 1);
+            break;
+        case 6:
+            hash = hash_function_modular(circle_vector, 1, 1, 1);
+            break;
+        case 7:
+            hash = hash_function_modular(circle_vector, 1, 0, 1);
+            break;
+        case 8:
+            hash = hash_function_modular(circle_vector, 0, 1, 1);
+            break;
+        default:
+            break;
+    }
+    iterator = map.find(hash);
+    if (iterator != map.end()) {
+        //it is already added
+        temp = map.at(hash);
+        temp[0] = (temp[0] + circle_vector[0])/2.;
+        temp[1] = (temp[1] + circle_vector[1])/2.;
+        temp[2] = (temp[2] + circle_vector[2])/2.;
+        temp[3]++;
+        map.at(hash) = temp;
+        
+    } else {
+        //it has not been added
+        temp[0] = circle_vector[0];
+        temp[1] = circle_vector[1];
+        temp[2] = circle_vector[2];
+        temp[3] = 1;
+        
+        map.insert(std::pair<string, Vec4f>(hash, temp));
+    }
+    return map;
+    
+}
+
+
 
 
 void drawHough(int, void*)
@@ -226,7 +310,8 @@ void drawHough(int, void*)
             circle( src_copy, center, radius, Scalar(0,255, 0), 2, 8, 0 );
         } else {
             total_circles++;
-            hash_insert(circles[i]);
+            aggregated_map = hash_insert_modular(circles[i], aggregated_map, map_iterator, 1);
+            //hash_insert(circles[i]);
             
             //this displays the cumulative circles onto the screen
             circle( src, center, radius, color, 2, 8, 0 );
@@ -444,6 +529,83 @@ void write_circle_list()
     }
 }
 
+
+/*
+ This just inserts the second map into the first map using the specified hashing function.
+ occurence checks to see if the value needs to have more than the circle_occurence amount in the bucket.
+ */
+
+std::map<string, Vec4f> hash_loop( std::map<string, Vec4f> map_new, std::map<string, Vec4f> map_old, int hashing_function, bool occurence)
+{
+    for (map_iterator = map_old.begin(); map_iterator != map_old.end() ; map_iterator++) {
+        Vec4f temp = map_iterator->second;
+        if (occurence) {
+            if (temp[3] >= circle_occurence) {
+                Vec3f temp_3f;
+                temp_3f[0] = temp[0];
+                temp_3f[1] = temp[1];
+                temp_3f[2] = temp[2];
+                map_new = hash_insert_modular(temp_3f, map_new, map_iterator, hashing_function);
+            }
+        } else {
+            Vec3f temp_3f;
+            temp_3f[0] = temp[0];
+            temp_3f[1] = temp[1];
+            temp_3f[2] = temp[2];
+            map_new = hash_insert_modular(temp_3f, map_new, map_iterator, hashing_function);
+        }
+        
+    }
+    return map_new;
+}
+
+/*
+ hash_routine just goes through all of the currently avaliable hash functions in order to get rid of edge cases
+ it then prints out the correctly aggregated values  and puts that back into the original map
+ */
+void hash_routine()
+{
+    std::map<string, Vec4f> aggregated_map_front;
+    std::map<string, Vec4f> aggregated_map_back;
+   
+    aggregated_map_back = hash_loop(aggregated_map_back, aggregated_map, 2, true);
+    
+    aggregated_map_front = hash_loop(aggregated_map_front, aggregated_map_back, 3, false);
+    aggregated_map_back.clear();
+
+    aggregated_map_back = hash_loop(aggregated_map_back, aggregated_map_front, 4, false);
+    aggregated_map_front.clear();
+    
+    aggregated_map_front = hash_loop(aggregated_map_front, aggregated_map_back, 5, false);
+    aggregated_map_back.clear();
+    
+    aggregated_map_back = hash_loop(aggregated_map_back, aggregated_map_front, 6, false);
+    aggregated_map_front.clear();
+    
+    aggregated_map_front = hash_loop(aggregated_map_front, aggregated_map_back, 7, false);
+    aggregated_map_back.clear();
+    
+    aggregated_map_back = hash_loop(aggregated_map_back, aggregated_map_front, 8, false);
+    aggregated_map_front.clear();
+    
+    
+    
+    Mat agg_src = orig_src.clone();
+    for (map_iterator = aggregated_map_back.begin(); map_iterator != aggregated_map_back.end() ; map_iterator++) {
+        
+        Vec4f temp = map_iterator->second;
+
+        Point center(cvRound(temp[0]), cvRound(temp[1]));
+        int radius = cvRound(temp[2]);
+        circle( agg_src, center, radius, Scalar(0,255, 0), 2, 8, 0 );
+    }
+    
+
+    aggregated_map = aggregated_map_back;
+    imshow("aggregated list after hashes", agg_src);
+    //imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
+}
+
 /*
  This writes the aggregated list to the console
  */
@@ -467,7 +629,7 @@ void draw_aggregate_list()
         if (temp[3] >= circle_occurence) {
             Point center(cvRound(temp[0]), cvRound(temp[1]));
             int radius = cvRound(temp[2]);
-            circle( agg_src, center, radius, Scalar(0,255, 0), 2, 8, 0 );
+            circle( agg_src, center, radius, Scalar(0,155, 0), 2, 8, 0 );
             total_aggregated_circles++;
         }
     }
@@ -565,7 +727,13 @@ int main(int argc, char** argv)
             print_log_header(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
 
         passes(edge_low, edge_high, blur_low, blur_high, cent_low, cent_high);
+        
+        
         draw_aggregate_list();
+        
+        hash_routine();
+        
+        //draw_aggregate_list();
         
         waitKey(0);
         imwrite(logfile_output + "circle_recog.jpg", src);
