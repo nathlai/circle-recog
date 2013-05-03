@@ -45,7 +45,7 @@ int edge_high = 300;
 
 int pixel_tolerance = 30;
 int radius_tolerance = 30;
-int circle_occurence = 5;
+int circle_occurence = 10;
 
 std::map<string, Vec4f> aggregated_map;
 std::map<string, Vec4f>::iterator map_iterator;
@@ -642,7 +642,6 @@ void draw_aggregate_list()
     imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
 
-
 // Callback: when use picks 'File | Open' from main menu
 void open_cb(Fl_Widget*, void*) {
     
@@ -664,18 +663,74 @@ void open_cb(Fl_Widget*, void*) {
     { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
     
     // Print what the user picked
-    fprintf(stderr, "--------------------\n");
-    fprintf(stderr, "DIRECTORY: '%s'\n", chooser.directory());
-    fprintf(stderr, "    VALUE: '%s'\n", chooser.value());
-    fprintf(stderr, "    COUNT: %d files selected\n", chooser.count());
-    //file_name = chooser.directory();
+    //fprintf(stderr, "--------------------\n");
+    //fprintf(stderr, "DIRECTORY: '%s'\n", chooser.directory());
+    //fprintf(stderr, "    VALUE: '%s'\n", chooser.value());
+    //fprintf(stderr, "    COUNT: %d files selected\n", chooser.count());
     
     // Multiple files? Show all of them
-    if ( chooser.count() > 1 ) {
-        for ( int t=1; t<=chooser.count(); t++ ) {
-            fprintf(stderr, " VALUE[%d]: '%s'\n", t, chooser.value(t));
-        }
+    //if ( chooser.count() > 1 ) {
+    //    for ( int t=1; t<=chooser.count(); t++ ) {
+    //        fprintf(stderr, " VALUE[%d]: '%s'\n", t, chooser.value(t));
+    //    }
+    //}
+    
+    // get src image, from file chosen
+    orig_src = imread( chooser.value(), 1 );
+    file_name = chooser.value();
+    
+    // validate src image
+    if( !orig_src.data )
+           { exit(1); }
+    
+    // get data from src image
+    original_row_amount = orig_src.rows;
+    original_column_amount = orig_src.cols;
+    
+    // Resize image, for consistency
+    orig_src = set_image_resolution(orig_src);
+    src = orig_src.clone();
+    
+    string window_name = "Hough Circle Transform Demo";
+    if(debugmode){
+        printf("GETOPT ARGS\nBLUR:%d to %d\nEDGE:%d to %d\nCENT:%d to %d\n", blur_low, blur_high, edge_low, edge_high, cent_low, cent_high);
+        // Create window and trackbars
+        namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
+        createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
+        createTrackbar( "Hough Center:", window_name, &center_threshy, max_threshold, drawHough );
+        createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
+        drawHough(0, 0);
+        waitKey(0);
+        cvDestroyAllWindows();
+        std::cout << edge_threshy << " " << blur_threshy << " " << center_threshy << std::endl;
     }
+    else {
+        // Run circle detection, track timing also
+        if(debugmode_passes)
+            print_log_header(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+        
+        passes(edge_low, edge_high, blur_low, blur_high, cent_low, cent_high);
+        
+        
+        draw_aggregate_list();
+        
+        hash_routine();
+        
+        waitKey(0);
+        cvDestroyAllWindows();
+        imwrite(logfile_output + "circle_recog.jpg", src);
+        
+        write_circle_list();
+        std::cout << "--------------------------"<<std::endl;
+        write_aggregate_list();
+        if(!debugmode_passes)
+        print_aggregate_logfile(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+        // print new log file
+        
+    }
+    
+    std::cout << debug_passes_counter << std::endl;
+    std::cout << pixel_tolerance << " " << radius_tolerance;
 }
 
 // Callback: when user picks 'Quit'
@@ -683,25 +738,19 @@ void quit_cb(Fl_Widget*, void*) {
     exit(0);
 }
 
-
-
-
 int main(int argc, char** argv)
 {
     int c;
     char *token;
     
-    while ((c = getopt (argc, argv, "dsi:o:b:e:c:r:p:")) != -1)
+    while ((c = getopt (argc, argv, "dso:b:e:c:r:p:")) != -1)
         switch (c)
     {
         case 's':
             debugmode_passes = true;
+            break;
         case 'd':
             debugmode = true;
-            break;
-        case 'i':
-            orig_src = imread( optarg, 1 );
-            file_name = optarg;
             break;
         case 'o':
             logfile_output = optarg;
@@ -744,70 +793,12 @@ int main(int argc, char** argv)
             abort();
     }
     
-    Fl_Window win(300, 180, "Simple Example of Fl_File_Chooser");
+    Fl_Window win(300, 180, "Circle Image Recognition");
     Fl_Menu_Bar menubar(0,0,300,25);
     menubar.add("File/Open", 0, open_cb);
     menubar.add("File/Quit", 0, quit_cb);
     
     win.show();
-    
-    string window_name = "Hough Circle Transform Demo";
 
-    // Check the image
-    if( !orig_src.data )
-        { return -1; }
-    
-    original_row_amount = orig_src.rows;
-    original_column_amount = orig_src.cols;
-    
-    // Resize image, for consistency
-    orig_src = set_image_resolution(orig_src);
-    src = orig_src.clone();
-
-    if(debugmode){
-        printf("GETOPT ARGS\nBLUR:%d to %d\nEDGE:%d to %d\nCENT:%d to %d\n", blur_low, blur_high, edge_low, edge_high, cent_low, cent_high);
-        // Create window and trackbars
-        namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
-        createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
-        createTrackbar( "Hough Center:", window_name, &center_threshy, max_threshold, drawHough );
-        createTrackbar( "Gaussian Blur:", window_name, &blur_threshy, 31, drawHough );
-        drawHough(0, 0);
-        waitKey(0);
-        std::cout << edge_threshy << " " << blur_threshy << " " << center_threshy << std::endl;
-    }
-    else {
-        // Run circle detection, track timing also
-        if(debugmode_passes)
-            print_log_header(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
-
-        passes(edge_low, edge_high, blur_low, blur_high, cent_low, cent_high);
-        
-        
-        draw_aggregate_list();
-        
-        hash_routine();
-        
-        //draw_aggregate_list();
-        
-        waitKey(0);
-        imwrite(logfile_output + "circle_recog.jpg", src);
-    
-
-        //write_circle_list();
-        //std::cout << "--------------------------"<<std::endl;
-        //write_aggregate_list();
-
-        write_circle_list();
-        std::cout << "--------------------------"<<std::endl;
-        write_aggregate_list();
-        if(!debugmode_passes)
-            print_aggregate_logfile(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
-            // print new log file
-
-    }
-    
-    
-    std::cout << debug_passes_counter << std::endl;
-    std::cout << pixel_tolerance << " " << radius_tolerance;
-    return 0;
+    return(Fl::run());
 }
