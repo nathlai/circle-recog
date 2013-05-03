@@ -52,6 +52,10 @@ std::map<string, Vec4f>::iterator map_iterator;
 
 
 
+//Image Strings
+string no_aggregation = "No Aggregation";
+string one_aggregation = "One Aggregation";
+string end_aggregation = "Final Aggregation";
 
 
 
@@ -521,6 +525,7 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
     
     total_aggregated_circles = aggregated_map.size();
     imshow( "Passes Without Aggregation", src );
+    imshow( no_aggregation, src );
 }
 
 /*
@@ -610,6 +615,7 @@ void hash_routine()
 
     aggregated_map = aggregated_map_back;
     imshow("aggregated list after hashes", agg_src);
+    imshow( end_aggregation , agg_src);
     //imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
 
@@ -641,6 +647,7 @@ void draw_aggregate_list()
         }
     }
     imshow("aggregated list", agg_src);
+    imshow(one_aggregation, agg_src);
     imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
 
@@ -750,6 +757,7 @@ int main(int argc, char** argv)
     Fl_Menu_Bar menubar(0,0,300,25);
     menubar.add("File/Open", 0, open_cb);
     menubar.add("File/Quit", 0, quit_cb);
+    
     win.show();
     
     string window_name = "Hough Circle Transform Demo";
@@ -806,6 +814,7 @@ int main(int argc, char** argv)
             // print new log file
 
     }
+    
     
     std::cout << debug_passes_counter << std::endl;
     std::cout << pixel_tolerance << " " << radius_tolerance;
