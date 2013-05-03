@@ -13,6 +13,13 @@
 #include <map>
 #include <getopt.h>
 
+//gui opener
+
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_File_Chooser.H>
+
 using namespace cv;
 
 int edge_threshy = 200;
@@ -637,6 +644,50 @@ void draw_aggregate_list()
     imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
 
+
+// Callback: when use picks 'File | Open' from main menu
+void open_cb(Fl_Widget*, void*) {
+    
+    // Create the file chooser, and show it
+    Fl_File_Chooser chooser(".",                        // directory
+                            "*",                        // filter
+                            Fl_File_Chooser::MULTI,     // chooser type
+                            "Title Of Chooser");        // title
+    chooser.show();
+    
+    // Block until user picks something.
+    //     (The other way to do this is to use a callback())
+    //
+    while(chooser.shown())
+    { Fl::wait(); }
+    
+    // User hit cancel?
+    if ( chooser.value() == NULL )
+    { fprintf(stderr, "(User hit 'Cancel')\n"); return; }
+    
+    // Print what the user picked
+    fprintf(stderr, "--------------------\n");
+    fprintf(stderr, "DIRECTORY: '%s'\n", chooser.directory());
+    fprintf(stderr, "    VALUE: '%s'\n", chooser.value());
+    fprintf(stderr, "    COUNT: %d files selected\n", chooser.count());
+    //file_name = chooser.directory();
+    
+    // Multiple files? Show all of them
+    if ( chooser.count() > 1 ) {
+        for ( int t=1; t<=chooser.count(); t++ ) {
+            fprintf(stderr, " VALUE[%d]: '%s'\n", t, chooser.value(t));
+        }
+    }
+}
+
+// Callback: when user picks 'Quit'
+void quit_cb(Fl_Widget*, void*) {
+    exit(0);
+}
+
+
+
+
 int main(int argc, char** argv)
 {
     int c;
@@ -695,7 +746,11 @@ int main(int argc, char** argv)
             abort();
     }
     
-    
+    Fl_Window win(300, 180, "Simple Example of Fl_File_Chooser");
+    Fl_Menu_Bar menubar(0,0,300,25);
+    menubar.add("File/Open", 0, open_cb);
+    menubar.add("File/Quit", 0, quit_cb);
+    win.show();
     
     string window_name = "Hough Circle Transform Demo";
 
