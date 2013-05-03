@@ -50,8 +50,6 @@ int circle_occurence = 5;
 std::map<string, Vec4f> aggregated_map;
 std::map<string, Vec4f>::iterator map_iterator;
 
-
-
 //Image Strings
 string no_aggregation = "No Aggregation";
 string one_aggregation = "One Aggregation";
@@ -370,15 +368,11 @@ print_log_file(
     {
         logfile << "----------------------------------------------------------------------\n";
         logfile << run_number << std::endl;
-        //logfile << "Picture: "<< name << std::endl;
-        //logfile << "Sobel filter: "<< sobel << std::endl;
         logfile << "Blur amount: "<< blur << std::endl;
         logfile << "Circle Center distance: "<< circle_centers << std::endl;
         logfile << "Canny edge threshold: "<< canny_threshold << std::endl;
         logfile << "Center threshold: "<< center_threshold << std::endl;
         logfile << "Color: " << temp_col<< std::endl;
-        //logfile << "Rows: "<< rows << std::endl;
-        //logfile << "Columns: "<< columns << std::endl;
         logfile << "Number of circles: "<< circles << std::endl;
         logfile << "Milliseconds: "<< time/1000 << std::endl;
         logfile << std::endl;
@@ -524,7 +518,6 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
     //}
     
     total_aggregated_circles = aggregated_map.size();
-    imshow( "Passes Without Aggregation", src );
     imshow( no_aggregation, src );
 }
 
@@ -614,7 +607,6 @@ void hash_routine()
     
 
     aggregated_map = aggregated_map_back;
-    imshow("aggregated list after hashes", agg_src);
     imshow( end_aggregation , agg_src);
     //imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
@@ -646,7 +638,6 @@ void draw_aggregate_list()
             total_aggregated_circles++;
         }
     }
-    imshow("aggregated list", agg_src);
     imshow(one_aggregation, agg_src);
     imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
