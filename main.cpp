@@ -17,6 +17,13 @@
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_File_Chooser.H>
 
+//gui opener
+
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_File_Chooser.H>
+
 using namespace cv;
 
 int edge_threshy = 200;
@@ -792,5 +799,4 @@ int main(int argc, char** argv)
     menubar.add("File/Quit", 0, quit_cb);
     win.show();
     return(Fl::run());
-
 }
