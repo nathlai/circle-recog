@@ -13,12 +13,20 @@
 #include <map>
 #include <getopt.h>
 
+
 //gui opener
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_File_Chooser.H>
+#include <FL/FL_Int_Input.H>
+#include <FL/Fl_Slider.H>
+#include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Text_Editor.H>
+#include <FL/Fl_Button.H>
+
+#include "sliders.h"
 
 using namespace cv;
 
@@ -738,6 +746,10 @@ void quit_cb(Fl_Widget*, void*) {
     exit(0);
 }
 
+void run_cb(Fl_Widget*, void*) {
+    exit(0);
+}
+
 int main(int argc, char** argv)
 {
     int c;
@@ -793,11 +805,32 @@ int main(int argc, char** argv)
             abort();
     }
     
-    Fl_Window win(300, 180, "Circle Image Recognition");
-    Fl_Menu_Bar menubar(0,0,300,25);
+    Fl_Window win(600, 380, "Circle Image Recognition");
+    Fl_Menu_Bar menubar(0,0,600,25);
     menubar.add("File/Open", 0, open_cb);
     menubar.add("File/Quit", 0, quit_cb);
+    //x, y, width, height on screen
+    SliderInput *si = new SliderInput(20,50,200,20,"Slider Input");
+    si->bounds(1,100);       // set min/max slider
+    si->value(50);           // set initial value
     
+    SliderInput *si1 = new SliderInput(20,100,200,20,"Slider Input2");
+    si1->bounds(1,100);       // set min/max for slider
+    si1->value(50);           // set initial value
+    
+    
+    Fl_Text_Buffer *buff = new Fl_Text_Buffer();
+    
+    Fl_Text_Editor *disp = new Fl_Text_Editor(300, 50, 200 , 300, "Values");
+    disp->buffer(buff);
+    win.resizable(*disp);
+
+    
+    
+    Fl_Button *but1 = new Fl_Button(10,200,140,25,"Run");
+    but1->callback(run_cb);
+    
+    win.add(but1);
     win.show();
 
     return(Fl::run());
