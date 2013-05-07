@@ -738,20 +738,36 @@ void quit_cb(Fl_Widget*, void*) {
     exit(0);
 }
 
+void debug_cb(Fl_Widget*, void* a) {
+    int debug_flag = *((int*)(&a));
+    
+    if(debug_flag == 0)
+    {
+        debugmode = false;
+        debugmode_passes = false;
+    }
+    else if(debug_flag == 1)
+    {
+        debugmode = true;
+        debugmode_passes = false;
+    }
+    else if(debug_flag == 2)
+    {
+        debugmode_passes = true;
+        debugmode = false;
+    }
+    
+    std::cout << "debugmode: " << debugmode << "\ndebugmode_passes: " << debugmode_passes << std::endl;
+}
+
 int main(int argc, char** argv)
 {
     int c;
     char *token;
     
-    while ((c = getopt (argc, argv, "dso:b:e:c:r:p:")) != -1)
+    while ((c = getopt (argc, argv, "o:b:e:c:r:p:")) != -1)
         switch (c)
     {
-        case 's':
-            debugmode_passes = true;
-            break;
-        case 'd':
-            debugmode = true;
-            break;
         case 'o':
             logfile_output = optarg;
             break;
@@ -795,9 +811,23 @@ int main(int argc, char** argv)
     
     Fl_Window win(300, 180, "Circle Image Recognition");
     Fl_Menu_Bar menubar(0,0,300,25);
-    menubar.add("File/Open", 0, open_cb);
-    menubar.add("File/Quit", 0, quit_cb);
-    
+    Fl_Menu_Item menutable[] = {
+        {"foo",0,0,0,FL_MENU_INACTIVE},
+        {"&File", 0, 0, 0, FL_SUBMENU},
+        {"&Open", 0, open_cb},
+        {"&Quit", 0, quit_cb},
+        {0},
+        {"&Debug", 0, 0, 0, FL_SUBMENU},
+        {"&None", 0, debug_cb, (void *)0, FL_MENU_RADIO|FL_MENU_VALUE},
+        {"&Sliders", 0, debug_cb, (void *)1, FL_MENU_RADIO},
+        {"&Logfile", 0, debug_cb, (void *)2, FL_MENU_RADIO},
+        {0},
+        {0}
+    };
+    //menubar.add("File/Open", 0, open_cb);
+    //menubar.add("Debug", 0, debug_cb);
+    //menubar.add("File/Quit", 0, quit_cb);
+    (&menubar)->copy(menutable);
     win.show();
 
     return(Fl::run());
