@@ -93,8 +93,30 @@ vector <vector<Vec3f> > circle_list;
 int list_counter = 0;
 
 
-SliderInput *si;
+//slider sections
+SliderInput *max_blur_slider;
+SliderInput *min_blur_slider;
 
+SliderInput *max_edge_slider;
+SliderInput *min_edge_slider;
+
+SliderInput *max_cent_slider;
+SliderInput *min_cent_slider;
+
+Fl_Text_Display *disp;
+Fl_Text_Display *message_disp;
+Fl_Text_Buffer *message_buff;
+Fl_Text_Buffer *buff;
+Fl_Text_Buffer *sbuff;
+
+Fl_Text_Display::Style_Table_Entry stable[] = {
+    // FONT COLOR      FONT FACE   FONT SIZE
+    // --------------- ----------- --------------
+    {  FL_RED,         FL_BOLD, 15 }, // A - Red
+    {  FL_DARK_YELLOW, FL_COURIER, 12 }, // B - Yellow
+    {  FL_DARK_GREEN,  FL_COURIER, 12 }, // C - Green
+    {  FL_BLUE,        FL_COURIER, 12 }, // D - Blue
+};
 
 
 /*
@@ -751,7 +773,33 @@ void quit_cb(Fl_Widget*, void*) {
 }
 
 void run_cb(Fl_Widget*, void*) {
-    exit(0);
+    bool run = true;
+    string error_text = "";
+    string error_style = "";
+    
+    //std::cout << max_blur_slider->value() << std::endl;
+    if (max_blur_slider->value() < min_blur_slider->value()) {
+        error_text = error_text + "Minimum blur value higher than maximum center value\n";
+        error_style = error_style+"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+        run = false;
+    }
+    
+    if (max_edge_slider->value() < min_edge_slider->value()) {
+        error_text = error_text + "Minimum edge value higher than maximum center value\n";
+        error_style = error_style+"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+        run = false;
+    }
+    
+    if (max_cent_slider->value() < min_cent_slider->value()) {
+        error_text = error_text + "Minimum center value higher than maximum center value\n";
+        error_style = error_style+"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+        run = false;
+    }
+    const char * c = error_text.c_str();
+    const char * s = error_style.c_str();
+    buff->text(c);
+    sbuff->text(s);
+    //exit(0);
 }
 
 void debug_cb(Fl_Widget*, void* a) {
@@ -775,11 +823,6 @@ void debug_cb(Fl_Widget*, void* a) {
     
     std::cout << "debugmode: " << debugmode << "\ndebugmode_passes: " << debugmode_passes << std::endl;
 }
-void slider_callback(Fl_Widget*, void*) {
-    std::cout << "hello world" << std::endl;
-    std::cout << si->value() << std::endl;
-}
-
 int main(int argc, char** argv)
 {
     int c;
@@ -850,26 +893,47 @@ int main(int argc, char** argv)
     (&menubar)->copy(menutable);
 
     //x, y, width, height on screen
-    si = new SliderInput(20,50,200,20,"Max Blur Amount");
-    si->bounds(2,30);       // set min/max slider
-    si->value(20);           // set initial value
-    si->callback(slider_callback);
-    std::cout << si->value() << std::endl;
+    max_blur_slider = new SliderInput(20,150,150,20,"Max Blur Amount");
+    max_blur_slider->bounds(2,30);       // set min/max slider
+    max_blur_slider->value(20);           // set initial value
     
     
-    SliderInput *si1 = new SliderInput(20,100,200,20,"Min Blur Amount");
-    si1->bounds(1,25);       // set min/max for slider
-    si1->value(10);           // set initial value
+    min_blur_slider = new SliderInput(20,200,150,20,"Min Blur Amount");
+    min_blur_slider->bounds(1,29);       // set min/max for slider
+    min_blur_slider->value(10);           // set initial value
     
+    max_edge_slider = new SliderInput(220,150,150,20,"Max Edge Amount");
+    max_edge_slider->bounds(50,500);       // set min/max slider
+    max_edge_slider->value(300);           // set initial value
     
+    min_edge_slider = new SliderInput(220,200,150,20,"Min Edge Amount");
+    min_edge_slider->bounds(50,500);       // set min/max for slider
+    min_edge_slider->value(100);           // set initial value
     
-    Fl_Text_Buffer *buff = new Fl_Text_Buffer();
+    max_cent_slider = new SliderInput(420,150,150,20,"Max Center Amount");
+    max_cent_slider->bounds(30,150);       // set min/max slider
+    max_cent_slider->value(80);           // set initial value
     
-    Fl_Text_Editor *disp = new Fl_Text_Editor(300, 50, 200 , 300, "Values");
-    disp->buffer(buff);
-    win.resizable(*disp);
+    min_cent_slider = new SliderInput(420,200,150,20,"Min Center Amount");
+    min_cent_slider->bounds(30,150);       // set min/max for slider
+    min_cent_slider->value(80);           // set initial value
+    
+    buff = new Fl_Text_Buffer();
+    message_buff = new Fl_Text_Buffer();
+    sbuff = new Fl_Text_Buffer();
+    
+    message_disp = disp = new Fl_Text_Display(20, 30, 550, 50);
+    message_disp->buffer(message_buff);
+    
+    disp = new Fl_Text_Display(20, 250, 550 , 100, "Errors");
 
-    Fl_Button *but1 = new Fl_Button(10,200,140,25,"Run");
+    
+    int stable_size = sizeof(stable)/sizeof(stable[0]);
+    disp->highlight_data(sbuff, stable, stable_size, 'A', 0, 0);
+
+    disp->buffer(buff);
+
+    Fl_Button *but1 = new Fl_Button(450,350,140,25,"Run");
     but1->callback(run_cb);
     
     win.add(but1);
