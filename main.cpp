@@ -93,6 +93,7 @@ vector <vector<Vec3f> > circle_list;
 int list_counter = 0;
 
 
+SliderInput *si;
 /*
  This function helps to colorize the values of our circles to overlay on top of the image
  */
@@ -749,6 +750,10 @@ void quit_cb(Fl_Widget*, void*) {
 void run_cb(Fl_Widget*, void*) {
     exit(0);
 }
+void slider_callback(Fl_Widget*, void*) {
+    std::cout << "hello world" << std::endl;
+    std::cout << si->value() << std::endl;
+}
 
 int main(int argc, char** argv)
 {
@@ -813,6 +818,16 @@ int main(int argc, char** argv)
     SliderInput *si = new SliderInput(20,50,200,20,"Slider Input");
     si->bounds(1,100);       // set min/max slider
     si->value(50);           // set initial value
+    si = new SliderInput(20,50,200,20,"Max Blur Amount");
+    si->bounds(2,30);       // set min/max slider
+    si->value(20);           // set initial value
+    si->callback(slider_callback);
+    std::cout << si->value() << std::endl;
+    
+    
+    SliderInput *si1 = new SliderInput(20,100,200,20,"Min Blur Amount");
+    si1->bounds(1,25);       // set min/max for slider
+    si1->value(10);           // set initial value
     
     SliderInput *si1 = new SliderInput(20,100,200,20,"Slider Input2");
     si1->bounds(1,100);       // set min/max for slider
