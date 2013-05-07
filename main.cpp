@@ -651,6 +651,7 @@ void draw_aggregate_list()
         }
     }
     imshow(one_aggregation, agg_src);
+    
     imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
 
@@ -702,7 +703,15 @@ void open_cb(Fl_Widget*, void*) {
     // Resize image, for consistency
     orig_src = set_image_resolution(orig_src);
     src = orig_src.clone();
-    
+ 
+}
+
+// Callback: when user picks 'Quit'
+void quit_cb(Fl_Widget*, void*) {
+    exit(0);
+}
+
+void run_cb(Fl_Widget*, void*) {
     string window_name = "Hough Circle Transform Demo";
     if(debugmode){
         printf("GETOPT ARGS\nBLUR:%d to %d\nEDGE:%d to %d\nCENT:%d to %d\n", blur_low, blur_high, edge_low, edge_high, cent_low, cent_high);
@@ -736,22 +745,13 @@ void open_cb(Fl_Widget*, void*) {
         std::cout << "--------------------------"<<std::endl;
         write_aggregate_list();
         if(!debugmode_passes)
-        print_aggregate_logfile(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
+            print_aggregate_logfile(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
         // print new log file
         
     }
     
     std::cout << debug_passes_counter << std::endl;
     std::cout << pixel_tolerance << " " << radius_tolerance;
-}
-
-// Callback: when user picks 'Quit'
-void quit_cb(Fl_Widget*, void*) {
-    exit(0);
-}
-
-void run_cb(Fl_Widget*, void*) {
-    exit(0);
 }
 
 void debug_cb(Fl_Widget*, void* a) {
@@ -772,8 +772,6 @@ void debug_cb(Fl_Widget*, void* a) {
         debugmode_passes = true;
         debugmode = false;
     }
-    
-    std::cout << "debugmode: " << debugmode << "\ndebugmode_passes: " << debugmode_passes << std::endl;
 }
 void slider_callback(Fl_Widget*, void*) {
     std::cout << "hello world" << std::endl;
@@ -832,7 +830,7 @@ int main(int argc, char** argv)
     Fl_Window win(600, 400, "Circle Image Recognition");
     Fl_Menu_Bar menubar(0,0,600,25);
     Fl_Menu_Item menutable[] = {
-        {"foo",0,0,0,FL_MENU_INACTIVE},
+        //{"foo",0,0,0,FL_MENU_INACTIVE},
         {"&File", 0, 0, 0, FL_SUBMENU},
         {"&Open", 0, open_cb},
         {"&Quit", 0, quit_cb},
@@ -844,9 +842,7 @@ int main(int argc, char** argv)
         {0},
         {0}
     };
-    //menubar.add("File/Open", 0, open_cb);
-    //menubar.add("Debug", 0, debug_cb);
-    //menubar.add("File/Quit", 0, quit_cb);
+    
     (&menubar)->copy(menutable);
 
     //x, y, width, height on screen
@@ -860,8 +856,6 @@ int main(int argc, char** argv)
     SliderInput *si1 = new SliderInput(20,100,200,20,"Min Blur Amount");
     si1->bounds(1,25);       // set min/max for slider
     si1->value(10);           // set initial value
-    
-    
     
     Fl_Text_Buffer *buff = new Fl_Text_Buffer();
     
