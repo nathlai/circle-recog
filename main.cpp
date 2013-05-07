@@ -801,17 +801,17 @@ void run_cb(Fl_Widget*, void*) {
             cvDestroyAllWindows();
             imwrite(logfile_output + "circle_recog.jpg", src);
             
-            write_circle_list();
-            std::cout << "--------------------------"<<std::endl;
-            write_aggregate_list();
+            //write_circle_list();
+            //std::cout << "--------------------------"<<std::endl;
+            //write_aggregate_list();
             if(!debugmode_passes)
                 print_aggregate_logfile(file_name, orig_src.rows, orig_src.cols, original_row_amount, original_column_amount);
             // print new log file
             
         }
         
-        std::cout << debug_passes_counter << std::endl;
-        std::cout << pixel_tolerance << " " << radius_tolerance;
+        //std::cout << debug_passes_counter << std::endl;
+        //std::cout << pixel_tolerance << " " << radius_tolerance;
     }
 }
 
