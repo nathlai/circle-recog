@@ -94,6 +94,9 @@ int list_counter = 0;
 
 
 SliderInput *si;
+
+
+
 /*
  This function helps to colorize the values of our circles to overlay on top of the image
  */
@@ -815,9 +818,6 @@ int main(int argc, char** argv)
     menubar.add("File/Open", 0, open_cb);
     menubar.add("File/Quit", 0, quit_cb);
     //x, y, width, height on screen
-    SliderInput *si = new SliderInput(20,50,200,20,"Slider Input");
-    si->bounds(1,100);       // set min/max slider
-    si->value(50);           // set initial value
     si = new SliderInput(20,50,200,20,"Max Blur Amount");
     si->bounds(2,30);       // set min/max slider
     si->value(20);           // set initial value
@@ -829,9 +829,6 @@ int main(int argc, char** argv)
     si1->bounds(1,25);       // set min/max for slider
     si1->value(10);           // set initial value
     
-    SliderInput *si1 = new SliderInput(20,100,200,20,"Slider Input2");
-    si1->bounds(1,100);       // set min/max for slider
-    si1->value(50);           // set initial value
     
     
     Fl_Text_Buffer *buff = new Fl_Text_Buffer();
