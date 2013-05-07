@@ -75,7 +75,7 @@ int contrast_threshy = 20;
 int brightness_threshy = 0;
 
 
-string file_name;
+string file_name="";
 
 float original_row_amount;
 float original_column_amount;
@@ -102,6 +102,11 @@ SliderInput *min_edge_slider;
 
 SliderInput *max_cent_slider;
 SliderInput *min_cent_slider;
+
+
+SliderInput *ptol_slider;
+SliderInput *rtol_slider;
+SliderInput *occurence_slider;
 
 Fl_Text_Display *disp;
 Fl_Text_Display *message_disp;
@@ -712,7 +717,14 @@ void open_cb(Fl_Widget*, void*) {
     
     // get src image, from file chosen
     orig_src = imread( chooser.value(), 1 );
+    string temp = "Input File: \n";
     file_name = chooser.value();
+    
+    temp = temp + file_name;
+    
+    const char* fname = temp.c_str();
+    
+    message_buff->text(fname);
     
     // validate src image
     if( !orig_src.data )
@@ -757,6 +769,13 @@ void run_cb(Fl_Widget*, void*) {
         error_style = error_style+"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
         run = false;
     }
+    if (file_name.compare("") == 0) {
+        error_text = error_text + "No input file selected\n";
+        error_style = error_style+"AAAAAAAAAAAAAAAAAAAAAA\n";
+        run = false;
+    }
+    
+    
     const char * c = error_text.c_str();
     const char * s = error_style.c_str();
     buff->text(c);
@@ -771,6 +790,10 @@ void run_cb(Fl_Widget*, void*) {
         edge_low = min_edge_slider->value();
         cent_high = max_cent_slider->value();
         cent_low = min_cent_slider->value();
+        pixel_tolerance = ptol_slider->value();
+        radius_tolerance = rtol_slider->value();
+        circle_occurence = occurence_slider->value();
+        
         
         string window_name = "Hough Circle Transform Demo";
         if(debugmode){
@@ -886,7 +909,7 @@ int main(int argc, char** argv)
             abort();
     }
     
-    Fl_Window win(600, 400, "Circle Image Recognition");
+    Fl_Window win(600, 500, "Circle Image Recognition");
     Fl_Menu_Bar menubar(0,0,600,25);
     Fl_Menu_Item menutable[] = {
         //{"foo",0,0,0,FL_MENU_INACTIVE},
@@ -930,14 +953,33 @@ int main(int argc, char** argv)
     min_cent_slider->bounds(30,150);       // set min/max for slider
     min_cent_slider->value(80);           // set initial value
     
+    
+    ptol_slider = new SliderInput(20,250,150,20,"Pixel Aggregation Tolerance");
+    ptol_slider->bounds(5,150);       // set min/max for slider
+    ptol_slider->value(30);           // set initial value
+    
+    rtol_slider = new SliderInput(220,250,150,20,"Radius Aggregation Tolerance");
+    rtol_slider->bounds(5,150);       // set min/max for slider
+    rtol_slider->value(30);           // set initial value
+    
+    
+    occurence_slider = new SliderInput(420,250,150,20,"Aggregation Threshold");
+    occurence_slider->bounds(1,100);       // set min/max for slider
+    occurence_slider->value(10);           // set initial value
+    
+    
+    
+    
+    
+    
     buff = new Fl_Text_Buffer();
     message_buff = new Fl_Text_Buffer();
     sbuff = new Fl_Text_Buffer();
     
-    message_disp = disp = new Fl_Text_Display(20, 30, 550, 50);
+    message_disp = disp = new Fl_Text_Display(20, 30, 550, 100);
     message_disp->buffer(message_buff);
     
-    disp = new Fl_Text_Display(20, 250, 550 , 100, "Errors");
+    disp = new Fl_Text_Display(20, 300, 550 , 100, "Errors");
 
     
     int stable_size = sizeof(stable)/sizeof(stable[0]);
@@ -945,7 +987,7 @@ int main(int argc, char** argv)
 
     disp->buffer(buff);
 
-    Fl_Button *but1 = new Fl_Button(450,350,140,25,"Run");
+    Fl_Button *but1 = new Fl_Button(450,450,140,25,"Run");
     but1->callback(run_cb);
     
     win.add(but1);
