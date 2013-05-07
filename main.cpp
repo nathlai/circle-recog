@@ -750,6 +750,10 @@ void quit_cb(Fl_Widget*, void*) {
     exit(0);
 }
 
+void run_cb(Fl_Widget*, void*) {
+    exit(0);
+}
+
 void debug_cb(Fl_Widget*, void* a) {
     int debug_flag = *((int*)(&a));
     
@@ -825,8 +829,8 @@ int main(int argc, char** argv)
             abort();
     }
     
-    Fl_Window win(300, 180, "Circle Image Recognition");
-    Fl_Menu_Bar menubar(0,0,300,25);
+    Fl_Window win(600, 400, "Circle Image Recognition");
+    Fl_Menu_Bar menubar(0,0,600,25);
     Fl_Menu_Item menutable[] = {
         {"foo",0,0,0,FL_MENU_INACTIVE},
         {"&File", 0, 0, 0, FL_SUBMENU},
