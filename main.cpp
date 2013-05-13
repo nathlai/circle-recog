@@ -25,6 +25,7 @@
 #include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Text_Editor.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Multiline_Output.H>
 
 #include "sliders.h"
 
@@ -372,7 +373,7 @@ void drawHough(int, void*)
     
     if (debugmode) {
         imshow( "Hough Circle Transform Demo", src_copy );
-        std::cout << edge_threshy << " " << blur_threshy << " " << center_threshy << std::endl;
+        //std::cout << edge_threshy << " " << blur_threshy << " " << center_threshy << std::endl;
     }
 }
 
@@ -860,6 +861,7 @@ void debug_cb(Fl_Widget*, void* a) {
         debugmode = false;
     }
 }
+
 int main(int argc, char** argv)
 {
     int c;
@@ -927,43 +929,53 @@ int main(int argc, char** argv)
     
     (&menubar)->copy(menutable);
 
+    int YP = 170;
+    
+    Fl_Multiline_Output *out = new Fl_Multiline_Output(20,130,0,0,"Pre Processing Sliders");
+    out->labelsize(20);
+    out->align(FL_ALIGN_RIGHT_TOP);
+    
     //x, y, width, height on screen
-    max_blur_slider = new SliderInput(20,150,150,20,"Max Blur Amount");
+    max_blur_slider = new SliderInput(20,YP,150,20,"Max Blur Amount");
     max_blur_slider->bounds(2,30);       // set min/max slider
     max_blur_slider->value(20);           // set initial value
     
     
-    min_blur_slider = new SliderInput(20,200,150,20,"Min Blur Amount");
+    min_blur_slider = new SliderInput(20,YP + 50,150,20,"Min Blur Amount");
     min_blur_slider->bounds(1,29);       // set min/max for slider
     min_blur_slider->value(10);           // set initial value
     
-    max_edge_slider = new SliderInput(220,150,150,20,"Max Edge Amount");
+    max_edge_slider = new SliderInput(220,YP,150,20,"Max Edge Amount");
     max_edge_slider->bounds(50,500);       // set min/max slider
     max_edge_slider->value(300);           // set initial value
     
-    min_edge_slider = new SliderInput(220,200,150,20,"Min Edge Amount");
+    min_edge_slider = new SliderInput(220, YP + 50,150,20,"Min Edge Amount");
     min_edge_slider->bounds(50,500);       // set min/max for slider
     min_edge_slider->value(100);           // set initial value
     
-    max_cent_slider = new SliderInput(420,150,150,20,"Max Center Amount");
+    max_cent_slider = new SliderInput(420, YP,150,20,"Max Center Amount");
     max_cent_slider->bounds(30,150);       // set min/max slider
     max_cent_slider->value(80);           // set initial value
     
-    min_cent_slider = new SliderInput(420,200,150,20,"Min Center Amount");
+    min_cent_slider = new SliderInput(420,YP + 50,150,20,"Min Center Amount");
     min_cent_slider->bounds(30,150);       // set min/max for slider
     min_cent_slider->value(80);           // set initial value
     
     
-    ptol_slider = new SliderInput(20,250,150,20,"Pixel Aggregation Tolerance");
+    Fl_Multiline_Output *out1 = new Fl_Multiline_Output(20,YP + 80,0,0,"Post Processing Sliders");
+    out1->labelsize(20);
+    out1->align(FL_ALIGN_RIGHT_TOP);
+    
+    ptol_slider = new SliderInput(20,YP + 120,150,20,"Pixel Aggregation Tolerance");
     ptol_slider->bounds(5,150);       // set min/max for slider
     ptol_slider->value(30);           // set initial value
     
-    rtol_slider = new SliderInput(220,250,150,20,"Radius Aggregation Tolerance");
+    rtol_slider = new SliderInput(220,YP + 120,150,20,"Radius Aggregation Tolerance");
     rtol_slider->bounds(5,150);       // set min/max for slider
     rtol_slider->value(30);           // set initial value
     
     
-    occurence_slider = new SliderInput(420,250,150,20,"Aggregation Threshold");
+    occurence_slider = new SliderInput(420,YP + 120,150,20,"Aggregation Threshold");
     occurence_slider->bounds(1,100);       // set min/max for slider
     occurence_slider->value(10);           // set initial value
     
@@ -979,7 +991,7 @@ int main(int argc, char** argv)
     message_disp = disp = new Fl_Text_Display(20, 30, 550, 100);
     message_disp->buffer(message_buff);
     
-    disp = new Fl_Text_Display(20, 300, 550 , 100, "Errors");
+    disp = new Fl_Text_Display(20, 340, 550 , 100, "Errors");
 
     
     int stable_size = sizeof(stable)/sizeof(stable[0]);
