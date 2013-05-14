@@ -745,6 +745,17 @@ void open_cb(Fl_Widget*, void*) {
 void quit_cb(Fl_Widget*, void*) {
     exit(0);
 }
+void default_cb(Fl_Widget*, void*) {
+    max_blur_slider->value(20);
+    min_blur_slider->value(10);
+    max_edge_slider->value(300);
+    min_edge_slider->value(100);
+    max_cent_slider->value(80);
+    min_cent_slider->value(80);
+    ptol_slider->value(30);
+    rtol_slider->value(30);
+    occurence_slider->value(5);
+}
 
 void run_cb(Fl_Widget*, void*) {
     
@@ -936,28 +947,28 @@ int main(int argc, char** argv)
     out->align(FL_ALIGN_RIGHT_TOP);
     
     //x, y, width, height on screen
-    max_blur_slider = new SliderInput(20,YP,150,20,"Max Blur Amount");
+    max_blur_slider = new SliderInput(20,YP + 50,150,20,"Max Blur Amount");
     max_blur_slider->bounds(2,30);       // set min/max slider
     max_blur_slider->value(20);           // set initial value
     
     
-    min_blur_slider = new SliderInput(20,YP + 50,150,20,"Min Blur Amount");
+    min_blur_slider = new SliderInput(20,YP,150,20,"Min Blur Amount");
     min_blur_slider->bounds(1,29);       // set min/max for slider
     min_blur_slider->value(10);           // set initial value
     
-    max_edge_slider = new SliderInput(220,YP,150,20,"Max Edge Amount");
+    max_edge_slider = new SliderInput(220,YP + 50,150,20,"Max Edge Amount");
     max_edge_slider->bounds(50,500);       // set min/max slider
     max_edge_slider->value(300);           // set initial value
     
-    min_edge_slider = new SliderInput(220, YP + 50,150,20,"Min Edge Amount");
+    min_edge_slider = new SliderInput(220, YP,150,20,"Min Edge Amount");
     min_edge_slider->bounds(50,500);       // set min/max for slider
     min_edge_slider->value(100);           // set initial value
     
-    max_cent_slider = new SliderInput(420, YP,150,20,"Max Center Amount");
+    max_cent_slider = new SliderInput(420, YP + 50,150,20,"Max Center Amount");
     max_cent_slider->bounds(30,150);       // set min/max slider
     max_cent_slider->value(80);           // set initial value
     
-    min_cent_slider = new SliderInput(420,YP + 50,150,20,"Min Center Amount");
+    min_cent_slider = new SliderInput(420,YP,150,20,"Min Center Amount");
     min_cent_slider->bounds(30,150);       // set min/max for slider
     min_cent_slider->value(80);           // set initial value
     
@@ -977,7 +988,7 @@ int main(int argc, char** argv)
     
     occurence_slider = new SliderInput(420,YP + 120,150,20,"Aggregation Threshold");
     occurence_slider->bounds(1,100);       // set min/max for slider
-    occurence_slider->value(10);           // set initial value
+    occurence_slider->value(5);           // set initial value
     
     
     
@@ -999,10 +1010,16 @@ int main(int argc, char** argv)
 
     disp->buffer(buff);
 
+    Fl_Button *but2 = new Fl_Button(300,450,140,25,"Default");
+    but2->callback(default_cb);
+    
+    win.add(but2);
+    
     Fl_Button *but1 = new Fl_Button(450,450,140,25,"Run");
     but1->callback(run_cb);
     
     win.add(but1);
+    
     win.show();
 
     return(Fl::run());
