@@ -936,28 +936,28 @@ int main(int argc, char** argv)
     out->align(FL_ALIGN_RIGHT_TOP);
     
     //x, y, width, height on screen
-    max_blur_slider = new SliderInput(20,YP,150,20,"Max Blur Amount");
+    max_blur_slider = new SliderInput(20,YP + 50,150,20,"Max Blur Amount");
     max_blur_slider->bounds(2,30);       // set min/max slider
     max_blur_slider->value(20);           // set initial value
     
     
-    min_blur_slider = new SliderInput(20,YP + 50,150,20,"Min Blur Amount");
+    min_blur_slider = new SliderInput(20,YP,150,20,"Min Blur Amount");
     min_blur_slider->bounds(1,29);       // set min/max for slider
     min_blur_slider->value(10);           // set initial value
     
-    max_edge_slider = new SliderInput(220,YP,150,20,"Max Edge Amount");
+    max_edge_slider = new SliderInput(220,YP + 50,150,20,"Max Edge Amount");
     max_edge_slider->bounds(50,500);       // set min/max slider
     max_edge_slider->value(300);           // set initial value
     
-    min_edge_slider = new SliderInput(220, YP + 50,150,20,"Min Edge Amount");
+    min_edge_slider = new SliderInput(220, YP,150,20,"Min Edge Amount");
     min_edge_slider->bounds(50,500);       // set min/max for slider
     min_edge_slider->value(100);           // set initial value
     
-    max_cent_slider = new SliderInput(420, YP,150,20,"Max Center Amount");
+    max_cent_slider = new SliderInput(420, YP + 50,150,20,"Max Center Amount");
     max_cent_slider->bounds(30,150);       // set min/max slider
     max_cent_slider->value(80);           // set initial value
     
-    min_cent_slider = new SliderInput(420,YP + 50,150,20,"Min Center Amount");
+    min_cent_slider = new SliderInput(420,YP,150,20,"Min Center Amount");
     min_cent_slider->bounds(30,150);       // set min/max for slider
     min_cent_slider->value(80);           // set initial value
     
