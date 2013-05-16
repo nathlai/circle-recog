@@ -982,11 +982,11 @@ int main(int argc, char** argv)
     out1->align(FL_ALIGN_RIGHT_TOP);
     
     ptol_slider = new SliderInput(20,YP + 120,150,20,"Pixel Aggregation Tolerance");
-    ptol_slider->bounds(5,150);       // set min/max for slider
+    ptol_slider->bounds(1,150);       // set min/max for slider
     ptol_slider->value(30);           // set initial value
     
     rtol_slider = new SliderInput(220,YP + 120,150,20,"Radius Aggregation Tolerance");
-    rtol_slider->bounds(5,150);       // set min/max for slider
+    rtol_slider->bounds(1,150);       // set min/max for slider
     rtol_slider->value(30);           // set initial value
     
     
