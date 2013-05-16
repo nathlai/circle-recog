@@ -766,6 +766,8 @@ void open_cb(Fl_Widget*, void*) {
 void quit_cb(Fl_Widget*, void*) {
     exit(0);
 }
+
+// Callback: set all of the values to default.
 void default_cb(Fl_Widget*, void*) {
     max_blur_slider->value(20);
     min_blur_slider->value(10);
@@ -855,7 +857,7 @@ void run_cb(Fl_Widget*, void*) {
             
             waitKey(0);
             cvDestroyAllWindows();
-            imwrite(logfile_output + "circle_recog.jpg", src);
+            //imwrite(logfile_output + "circle_recog.jpg", src);
             
             //write_circle_list();
             //std::cout << "--------------------------"<<std::endl;
@@ -963,6 +965,7 @@ int main(int argc, char** argv)
 
     int YP = 170;
     
+    //set the text on the screen
     Fl_Multiline_Output *out = new Fl_Multiline_Output(20,130,0,0,"Pre Processing Sliders");
     out->labelsize(20);
     out->align(FL_ALIGN_RIGHT_TOP);
@@ -1025,22 +1028,20 @@ int main(int argc, char** argv)
     message_disp = disp = new Fl_Text_Display(20, 30, 550, 100);
     message_disp->buffer(message_buff);
     
-    disp = new Fl_Text_Display(20, 340, 550 , 100, "Errors");
-
     
+    disp = new Fl_Text_Display(20, 340, 550 , 100, "Errors");
     int stable_size = sizeof(stable)/sizeof(stable[0]);
     disp->highlight_data(sbuff, stable, stable_size, 'A', 0, 0);
-
     disp->buffer(buff);
 
+    
+    //adding the buttons and button callbacks.
     Fl_Button *but2 = new Fl_Button(300,450,140,25,"Default");
     but2->callback(default_cb);
-    
     win.add(but2);
     
     Fl_Button *but1 = new Fl_Button(450,450,140,25,"Run");
     but1->callback(run_cb);
-    
     win.add(but1);
     
     win.show();
