@@ -335,8 +335,9 @@ void drawHough(int, void*)
     // Convert to grayscale
     cvtColor( orig_src, orig_gray, CV_BGR2GRAY );
     src_gray = orig_gray.clone();
-
-    //printf("EDGE: %d\nCENTER: %d\nBLUR: %d\n\n", edge_threshy, center_threshy, blur_threshy * 2 + 1);
+    
+    if (debugmode)
+        printf("EDGE: %d\nCENTER: %d\nBLUR: %d\n\n", edge_threshy, center_threshy, blur_threshy * 2 + 1);
     
     // Blur input picture
     GaussianBlur( src_gray, src_gray, Size(blur_threshy * 2 + 1, blur_threshy * 2 + 1), 0, 0 );
@@ -344,8 +345,11 @@ void drawHough(int, void*)
     
     /// Apply the Hough Transform to find the circles
     HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, cntr_distance, edge_threshy, center_threshy, min_circle_radius, max_circle_radius );
-
-    Mat src_copy = src.clone();
+    Mat src_copy;
+    if (debugmode)
+        src_copy = orig_src.clone();
+    else
+        src_copy = src.clone();
     
     /// Draw the circles detected
     for( size_t i = 0; i < circles.size(); i++ )
@@ -809,7 +813,7 @@ void run_cb(Fl_Widget*, void*) {
         
         string window_name = "Hough Circle Transform Demo";
         if(debugmode){
-            printf("GETOPT ARGS\nBLUR:%d to %d\nEDGE:%d to %d\nCENT:%d to %d\n", blur_low, blur_high, edge_low, edge_high, cent_low, cent_high);
+            //printf("GETOPT ARGS\nBLUR:%d to %d\nEDGE:%d to %d\nCENT:%d to %d\n", blur_low, blur_high, edge_low, edge_high, cent_low, cent_high);
             // Create window and trackbars
             namedWindow( "Hough Circle Transform Demo", CV_WINDOW_AUTOSIZE );
             createTrackbar( "Hough Edge:", window_name, &edge_threshy, max_threshold, drawHough );
