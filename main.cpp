@@ -202,6 +202,9 @@ Mat applySobel(Mat src_gray)
     return grad;
 }
 
+/*
+ this function converts the int to a string value and then returns it.  This is necessary to get the string hash value
+ */
 string convertInt(int number)
 {
     std::stringstream ss;
@@ -209,6 +212,11 @@ string convertInt(int number)
     return ss.str();
 }
 
+
+/*
+ This is the hashing function.  It takes in the circle vector and hashes it
+ This was the original hashing function and only does the first group of buckets
+ */
 string hash_function(Vec3f circle_vector)
 {
     int xhash = circle_vector[0] / pixel_tolerance;
@@ -218,12 +226,18 @@ string hash_function(Vec3f circle_vector)
     return convertInt(xhash)+"_"+convertInt(yhash)+"_"+convertInt(rhash);
 }
 
-
+/*
+ this takes the circle vector and adds it to the hash table
+ */
 void hash_insert(Vec3f circle_vector)
 {
     Vec4f temp;
+    
+    //generate our hash value
     string hash = hash_function(circle_vector);
     map_iterator = aggregated_map.find(hash);
+    
+    // we need to check to see if the hash exists already.  if it does we combine it with the already added value, if not we add it to our hash table
     if (map_iterator != aggregated_map.end()) {
         //it is already added
         temp = aggregated_map.at(hash);
@@ -246,10 +260,11 @@ void hash_insert(Vec3f circle_vector)
 }
 
 /*
- use 0 or 1 for x y and r for default shift the shift of 0 is equal to 2 therefore only values within 0 to 2 are necessary
- 1 is half a grid length
- it determines whether or not to shift the hashing. 0 doesn't shift, 1 shifts
- other values may result in other off-centered mappings 
+ We use 0 - 1 for x y and r in order to shift the bucket location.
+ 0, 0, 0 is the default. 
+ because of the formula (circle_vector[0] + x * (pixel_tolerance *.5), an x value of 2 will move the bucket over exactly 1 spot, resulting in the same hash as if it was 0
+ 1 is half a grid length while 2 is a full grid length
+ This function determines how we shift the buckets, 0 doesn't shift, values of 2 shift it exactly one 
  */
 string hash_function_modular(Vec3f circle_vector, float x, float y, float r)
 {
@@ -563,6 +578,7 @@ void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int hig
     
     total_aggregated_circles = aggregated_map.size();
     imshow( no_aggregation, src );
+    imwrite(logfile_output + "no_aggregation.jpg", src);
 }
 
 /*
@@ -652,6 +668,7 @@ void hash_routine()
 
     aggregated_map = aggregated_map_back;
     imshow( end_aggregation , agg_src);
+    imwrite(logfile_output + "final_aggregation.jpg", agg_src);
     //imwrite(logfile_output + "circle_aggregate.jpg", agg_src);
 }
 
@@ -950,6 +967,8 @@ int main(int argc, char** argv)
     out->labelsize(20);
     out->align(FL_ALIGN_RIGHT_TOP);
     
+    
+    // this section sets all of the sliders onto the screen.
     //x, y, width, height on screen
     max_blur_slider = new SliderInput(20,YP + 50,150,20,"Max Blur Amount");
     max_blur_slider->bounds(2,30);       // set min/max slider
