@@ -355,6 +355,7 @@ std::map<string, Vec4f> hash_insert_modular(Vec3f circle_vector, std::map<string
 /*
  This is the drawing function of the project and will attempt to gather and draw or store the found circles
  This is the only place in which the HoughCircles function is called.
+ The reason why it takes in and void* is to get it to work with the openCV sliders which need that function prototype
  */
 void drawHough(int, void*)
 {
