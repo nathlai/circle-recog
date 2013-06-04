@@ -31,6 +31,9 @@
 
 using namespace cv;
 
+/*
+ global variables
+ */
 int edge_threshy = 200;
 int center_threshy = 80;
 int blur_threshy = 4;
@@ -52,6 +55,7 @@ int cent_high = 80;
 int edge_low = 100;
 int edge_high = 300;
 
+//Controls the post processing aggregation algorithm, 
 int pixel_tolerance = 30;
 int radius_tolerance = 30;
 int circle_occurence = 10;
@@ -72,12 +76,14 @@ string end_aggregation = "Final Aggregation";
 // src, src_gray - clones of originals, used to do one pass of Hough an display
 Mat orig_src, orig_gray, src, src_gray;
 
+
 int contrast_threshy = 20;
 int brightness_threshy = 0;
 
-
+// global variable of the name of the file to open
 string file_name="";
 
+//original size of the image that was loaded
 float original_row_amount;
 float original_column_amount;
 
@@ -94,7 +100,7 @@ vector <vector<Vec3f> > circle_list;
 int list_counter = 0;
 
 
-//slider sections
+//Gui global variables for sliders and messages
 SliderInput *max_blur_slider;
 SliderInput *min_blur_slider;
 
@@ -126,7 +132,8 @@ Fl_Text_Display::Style_Table_Entry stable[] = {
 
 
 /*
- This function helps to colorize the values of our circles to overlay on top of the image
+ This function helps to colorize the values of our circles to overlay on top of the image.
+ It uses a double that is between 0 and 1 to determine the color to pass back
  */
 Scalar BlueGreenRed( double f )
 {
@@ -177,6 +184,10 @@ Scalar BlueGreenRed( double f )
 }
 
 
+/*
+ This function would apply the sobel filter to the image, although this was not necessary because
+ Open cv's Hough gradient already applies canny filter to find edges and uses the sobel filter in order to get the gradient.
+ */
 Mat applySobel(Mat src_gray)
 {
     /// Generate grad_x and grad_y
@@ -227,7 +238,7 @@ string hash_function(Vec3f circle_vector)
 }
 
 /*
- this takes the circle vector and adds it to the hash table
+ this takes the circle vector and adds it to the global hash table
  */
 void hash_insert(Vec3f circle_vector)
 {
@@ -260,6 +271,7 @@ void hash_insert(Vec3f circle_vector)
 }
 
 /*
+ This is the modular hash function in order to allow us to shift the buckets in which circles are placed
  We use 0 - 1 for x y and r in order to shift the bucket location.
  0, 0, 0 is the default. 
  because of the formula (circle_vector[0] + x * (pixel_tolerance *.5), an x value of 2 will move the bucket over exactly 1 spot, resulting in the same hash as if it was 0
@@ -340,7 +352,10 @@ std::map<string, Vec4f> hash_insert_modular(Vec3f circle_vector, std::map<string
 
 
 
-
+/*
+ This is the drawing function of the project and will attempt to gather and draw or store the found circles
+ This is the only place in which the HoughCircles function is called.
+ */
 void drawHough(int, void*)
 {
     Mat new_image = Mat::zeros( orig_src.size(), orig_src.type() );
@@ -400,7 +415,8 @@ void drawHough(int, void*)
 
 
 /*
- This function takes in the current mat and then resizes it and returns the new resized mat
+ This function takes in the current mat and then resizes it and returns the new resized mat.
+ This does it in order to get a closer resolution size and value for the pictures that will be ran on
  */
 Mat
 set_image_resolution(Mat value){
@@ -413,7 +429,7 @@ set_image_resolution(Mat value){
 }
 
 /*
- This function prints out the values for each pass.
+ This is part of the logfile creation
  */
  void
 print_log_file(
@@ -478,6 +494,8 @@ void print_aggregate_logfile(string name, float rows, float columns, float old_r
     }
 }
 
+
+// this is the header for the logfile for the pass that has been ran.
 void print_log_header(string name, float rows, float columns, float old_rows, float old_columns)
 {
     time_t now = time(0);
@@ -502,7 +520,7 @@ void print_log_header(string name, float rows, float columns, float old_rows, fl
 }
 
 /*
- This function just outputs the circles.
+ This function just outputs the circles to the logfile.
  */
 void
 print_radii_values(vector<Vec3f> circles)
@@ -520,6 +538,11 @@ print_radii_values(vector<Vec3f> circles)
     else std::cout << "Unable to open file";
 }
 
+
+/*
+ This is the main function of the program which generates all of the passes.
+ It is possible to add more passes by adding more loops to the function and increasing the range of parameters that it takes in.
+ */
 void passes(int low, int high, int lowBlur, int highBlur, int lowCenter, int highCenter)
 {
     int run_number = 0;
@@ -780,13 +803,14 @@ void default_cb(Fl_Widget*, void*) {
     occurence_slider->value(5);
 }
 
+// Callback: for when the run button is pushed
 void run_cb(Fl_Widget*, void*) {
     
     bool run = true;
     string error_text = "";
     string error_style = "";
     
-    //std::cout << max_blur_slider->value() << std::endl;
+    // we are checking to see if the values are correct to be ran.
     if (max_blur_slider->value() < min_blur_slider->value()) {
         error_text = error_text + "Minimum blur value higher than maximum center value\n";
         error_style = error_style+"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
@@ -818,7 +842,7 @@ void run_cb(Fl_Widget*, void*) {
     
     if(run)
     {
-        
+        // updating all of the global variables.
         blur_high = max_blur_slider->value();
         blur_low = min_blur_slider->value();
         edge_high = max_edge_slider->value();
@@ -875,7 +899,8 @@ void run_cb(Fl_Widget*, void*) {
 
 
 
-
+// Callback: The debug mode callback checks to see what mode to run in the debug.
+// it switches between none, sliders, or output pre aggregated circles to the logfile.
 void debug_cb(Fl_Widget*, void* a) {
     int debug_flag = *((int*)(&a));
     
@@ -901,6 +926,7 @@ int main(int argc, char** argv)
     int c;
     char *token;
     
+    //  The original GetOPS.
     while ((c = getopt (argc, argv, "o:b:e:c:r:p:")) != -1)
         switch (c)
     {
@@ -945,6 +971,7 @@ int main(int argc, char** argv)
             abort();
     }
     
+    // Generating the gui section
     Fl_Window win(600, 500, "Circle Image Recognition");
     Fl_Menu_Bar menubar(0,0,600,25);
     Fl_Menu_Item menutable[] = {
@@ -1020,7 +1047,7 @@ int main(int argc, char** argv)
     
     
     
-    
+    //Generate a new text buffer for the gui to write to.
     buff = new Fl_Text_Buffer();
     message_buff = new Fl_Text_Buffer();
     sbuff = new Fl_Text_Buffer();
